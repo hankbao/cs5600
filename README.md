@@ -3,3 +3,4 @@
 All the labs and assignments for cs5600
 
 - [Homework 1: Chapter 4 simulator and Pick a Paper!](Homework%201/README.md)
+- [Homework 2: Chapters 5-7](Homework%202/README.md)

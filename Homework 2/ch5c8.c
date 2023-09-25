@@ -27,11 +27,12 @@ call_ls(int pipefd[2])
         dup2(pipefd[1], STDOUT_FILENO);  // Redirect the standard output to the pipe's write end
 
         char *myargs[2];
-        myargs[0] = strdup("/bin/ls");   // program: "ls" (word count)
+        myargs[0] = strdup("/bin/ls");
         myargs[1] = NULL;
-        execvp(myargs[0], myargs);  // runs word count
+        execvp(myargs[0], myargs);
     } else {
         // parent goes down this path (original process)
+        close(pipefd[1]);
         int ls = wait(NULL);
         assert(ls == rc);
     }
@@ -51,15 +52,17 @@ call_grep(int pipefd[2])
         dup2(pipefd[0], STDIN_FILENO);  // Redirect the standard input from the pipe's read end
 
         char *myargs[4];
-        myargs[0] = strdup("/bin/grep");   // program: "ls"
-        //myargs[1] = strdup("-v");
-        myargs[1] = strdup("md");
-        myargs[2] = NULL;
-        execvp(myargs[0], myargs);  // runs word count
+        myargs[0] = strdup("/bin/grep");
+        myargs[1] = strdup("-v");
+        myargs[2] = strdup("md");
+        myargs[3] = NULL;
+        execvp(myargs[0], myargs);
     } else {
         // parent goes down this path (original process)
-        int ls = wait(NULL);
-        assert(ls == rc);
+        close(pipefd[0]);
+
+        int grep = wait(NULL);
+        assert(grep == rc);
     }
 }
 

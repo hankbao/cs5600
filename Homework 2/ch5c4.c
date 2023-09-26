@@ -27,7 +27,10 @@ call_execl()
         printf("Child (%d) calling execl()\n", getpid());
 
         char *ls = "/bin/ls";
-        execl(ls, ls, NULL);
+        if (execl(ls, ls, NULL) < 0) {
+            perror("execl");
+            exit(EXIT_FAILURE);
+        }
     } else {
         // parent goes down this path (original process)
         int ls = wait(NULL);
@@ -48,7 +51,10 @@ call_execlp()
         printf("Child (%d) calling execlp()\n", getpid());
 
         char *ls = "/bin/ls";
-        execlp(ls, ls, NULL);
+        if (execlp(ls, ls, NULL) < 0) {
+            perror("execlp");
+            exit(EXIT_FAILURE);
+        }
     } else {
         // parent goes down this path (original process)
         int ls = wait(NULL);
@@ -71,7 +77,10 @@ call_execle()
         char *ls = "/bin/ls";
         char *envp[1];
         envp[0] = NULL;
-        execle(ls, ls, NULL, envp);
+        if (execle(ls, ls, NULL, envp) < 0) {
+            perror("execle");
+            exit(EXIT_FAILURE);
+        }
     } else {
         // parent goes down this path (original process)
         int ls = wait(NULL);
@@ -94,7 +103,10 @@ call_execv()
         char *myargs[2];
         myargs[0] = strdup("/bin/ls");
         myargs[1] = NULL;
-        execv(myargs[0], myargs);
+        if (execv(myargs[0], myargs) < 0) {
+            perror("execv");
+            exit(EXIT_FAILURE);
+        }
     } else {
         // parent goes down this path (original process)
         int ls = wait(NULL);
@@ -117,7 +129,10 @@ call_execvp()
         char *myargs[2];
         myargs[0] = strdup("/bin/ls");
         myargs[1] = NULL;
-        execvp(myargs[0], myargs);
+        if (execvp(myargs[0], myargs) < 0) {
+            perror("execvp");
+            exit(EXIT_FAILURE);
+        }
     } else {
         // parent goes down this path (original process)
         int ls = wait(NULL);
@@ -144,7 +159,10 @@ call_execvpe()
         char *envp[1];
         envp[0] = NULL;
 
-        execvpe(myargs[0], myargs, envp);
+        if (execvpe(myargs[0], myargs, envp) < 0) {
+            perror("execvpe");
+            exit(EXIT_FAILURE);
+        }
     } else {
         // parent goes down this path (original process)
         int ls = wait(NULL);

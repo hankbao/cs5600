@@ -39,7 +39,10 @@ main(int argc, char *argv[])
         char *myargs[2];
         myargs[0] = strdup("/bin/ls");
         myargs[1] = NULL;
-        execvp(myargs[0], myargs);
+        if (execvp(myargs[0], myargs) < 0) {
+            perror("execvp");
+            exit(EXIT_FAILURE);
+        }
     } else {
         // parent goes down this path (original process)
         wait(NULL);
@@ -53,7 +56,10 @@ main(int argc, char *argv[])
         myargs[0] = strdup("grep");
         myargs[1] = strdup("c8");
         myargs[2] = NULL;
-        execvp(myargs[0], myargs);
+        if (execvp(myargs[0], myargs) < 0) {
+            perror("execvp");
+            exit(EXIT_FAILURE);
+        }
     }
 
     return EXIT_SUCCESS;

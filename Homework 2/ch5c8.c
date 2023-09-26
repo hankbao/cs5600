@@ -13,9 +13,17 @@
 #include <assert.h>
 #include <sys/wait.h>
 
-void
-call_ls(int pipefd[2])
+int
+main(int argc, char *argv[])
 {
+    int pipefd[2];
+
+    // Create the pipe
+    if (pipe(pipefd) < 0) {
+        perror("pipe");
+        exit(EXIT_FAILURE);
+    }
+
     int rc = fork();
     if (rc < 0) {
         // fork failed; exit
@@ -23,8 +31,10 @@ call_ls(int pipefd[2])
         exit(EXIT_FAILURE);
     } else if (rc == 0) {
         // child (new process)
-        close(pipefd[0]);  // Close the read end of the pipe
-        dup2(pipefd[1], STDOUT_FILENO);  // Redirect the standard output to the pipe's write end
+        // Redirect the standard output to the pipe's write end
+        dup2(pipefd[1], STDOUT_FILENO);
+        close(pipefd[0]);
+        close(pipefd[1]);
 
         char *myargs[2];
         myargs[0] = strdup("/bin/ls");
@@ -32,53 +42,19 @@ call_ls(int pipefd[2])
         execvp(myargs[0], myargs);
     } else {
         // parent goes down this path (original process)
-        close(pipefd[1]);
-        int ls = wait(NULL);
-        assert(ls == rc);
-    }
-}
+        wait(NULL);
 
-void
-call_grep(int pipefd[2])
-{
-    int rc = fork();
-    if (rc < 0) {
-        // fork failed; exit
-        perror("fork");
-        exit(EXIT_FAILURE);
-    } else if (rc == 0) {
-        // child (new process)
-        close(pipefd[1]);  // Close the write end of the pipe
-        dup2(pipefd[0], STDIN_FILENO);  // Redirect the standard input from the pipe's read end
-
-        char *myargs[4];
-        myargs[0] = strdup("/bin/grep");
-        myargs[1] = strdup("-v");
-        myargs[2] = strdup("README");
-        myargs[3] = NULL;
-        execvp(myargs[0], myargs);
-    } else {
-        // parent goes down this path (original process)
+        // Redirect the standard input from the pipe's read end
+        dup2(pipefd[0], STDIN_FILENO);
         close(pipefd[0]);
+        close(pipefd[1]);
 
-        int grep = wait(NULL);
-        assert(grep == rc);
+        char *myargs[3];
+        myargs[0] = strdup("grep");
+        myargs[1] = strdup("c8");
+        myargs[2] = NULL;
+        execvp(myargs[0], myargs);
     }
-}
-
-int
-main(int argc, char *argv[])
-{
-    int pipefd[2];
-
-    // Create the pipe
-    if (pipe(pipefd) == -1) {
-        perror("pipe");
-        exit(EXIT_FAILURE);
-    }
-
-    call_ls(pipefd);
-    call_grep(pipefd);
 
     return EXIT_SUCCESS;
 }

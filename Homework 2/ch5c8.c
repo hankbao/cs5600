@@ -54,7 +54,7 @@ call_grep(int pipefd[2])
         char *myargs[4];
         myargs[0] = strdup("/bin/grep");
         myargs[1] = strdup("-v");
-        myargs[2] = strdup("md");
+        myargs[2] = strdup("README");
         myargs[3] = NULL;
         execvp(myargs[0], myargs);
     } else {

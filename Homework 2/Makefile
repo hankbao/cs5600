@@ -1,8 +1,8 @@
 
-all: c1 c2 c3 c4 c5 c6 c7 c8
+all: c1 c2 c3 c4 c5 c6 c7 c8 m1 m2
 
 clean:
-	rm -f c1 c2 c3 c4 c5 c6 c7 c8 *.output
+	rm -f c1 c2 c3 c4 c5 c6 c7 c8 m1 m2 *.output
 
 c1: ch5c1.c
 	gcc -o c1 ch5c1.c -Wall
@@ -27,3 +27,9 @@ c7: ch5c7.c
 
 c8: ch5c8.c
 	gcc -o c8 ch5c8.c -Wall
+
+m1: ch6m1.c
+	gcc -o m1 ch6m1.c -Wall
+
+m2: ch6m2.c
+	gcc -o m2 ch6m2.c -Wall

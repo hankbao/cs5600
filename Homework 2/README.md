@@ -311,6 +311,24 @@ Action: b EXITS
 
 ## Part 3: Chapter 6 Measurement
 
+- Measuring the cost of a system call, please see the code in [ch6m1.c](./ch6m1.c).
+
+```zsh
+$ ./m1
+Average cost of a system call is: 0.5198 microseconds
+$ ./m1
+Average cost of a system call is: 0.6310 microseconds
+```
+
+- Measuring the cost of a context switch, please see the code in [ch6m2.c](./ch6m2.c).
+
+```zsh
+$ ./m2
+Average cost of a context switch is: 3.8330 microseconds
+$ ./m2
+Average cost of a context switch is: 3.6845 microseconds
+```
+
 ## Part 4: Chapter 7 Simulation
 
 **Q1**: Compute the response time and turnaround time when running

@@ -1256,3 +1256,23 @@ Random 634861
 **A**: We can test the fairness metric with more jobs running in the same time. The fairness metric `F` for a stride scheduler would be more close to 1 as it gets the proportions probabilistically exactly right at the end of each scheduling cycle.
 
 ## Part 3:  MLFQ Design
+
+The MLFQ tries to these two goals:
+
+1. to optimize *turnaround time*
+2. to minimize *response time*
+
+The overall rules for a MLFQ is as below:
+
+1. If Priority(A) > Priority(B), A runs (B doesn’t).
+2. If Priority(A) = Priority(B), A & B run in round-robin fashion using the time slice (quantum length) of the given queue.
+3. When a job enters the system, it is placed at the highest
+priority (the topmost queue).
+4. Once a job uses up its time allotment at a given level (regardless of how many times it has given up the CPU), its priority is reduced (i.e., it moves down one queue).
+5. After some time period S, move all the jobs in the system
+to the topmost queue.
+
+In addition, we can try these strategies to improve the performance of MLFQ:
+
+1. Dynamic number of queues according to the process we're currently having and their nature (I/O-bound or CPU-bound)
+2. Dynamic number of time slices according to the number of queue

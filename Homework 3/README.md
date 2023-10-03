@@ -1118,3 +1118,141 @@ Final statistics:
 
   Avg  4: startTime n/a - response 18.00 - turnaround 78.20
 ```
+
+## Part 2:  Chapter 9 Simulation
+
+**Q1**: Compute the solutions for simulations with 3 jobs and random seeds of 1, 2, and 3.
+
+**A**:
+
+First, jobs run in this order: 2, 0, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1
+
+```zsh
+$ python lottery.py -j 3 -s 1
+ARG jlist
+ARG jobs 3
+ARG maxlen 10
+ARG maxticket 100
+ARG quantum 1
+ARG seed 1
+
+Here is the job list, with the run time of each job:
+  Job 0 ( length = 1, tickets = 84 )
+  Job 1 ( length = 7, tickets = 25 )
+  Job 2 ( length = 4, tickets = 44 )
+
+
+Here is the set of random numbers you will need (at most):
+Random 651593
+Random 788724
+Random 93859
+Random 28347
+Random 835765
+Random 432767
+Random 762280
+Random 2106
+Random 445387
+Random 721540
+Random 228762
+Random 945271
+```
+
+Second, jobs run in this order: 2, 0, 0, 2, 0, 1, 0, 2, 0, 0, 0, 1, 0, 0, 1, 2, 1, 1, 1, 2, 1, 1, 2
+
+```zsh
+$ python lottery.py -j 3 -s 2
+ARG jlist
+ARG jobs 3
+ARG maxlen 10
+ARG maxticket 100
+ARG quantum 1
+ARG seed 2
+
+Here is the job list, with the run time of each job:
+  Job 0 ( length = 9, tickets = 94 )
+  Job 1 ( length = 8, tickets = 73 )
+  Job 2 ( length = 6, tickets = 30 )
+
+
+Here is the set of random numbers you will need (at most):
+Random 605944
+Random 606802
+Random 581204
+Random 158383
+Random 430670
+Random 393532
+Random 723012
+Random 994820
+Random 949396
+Random 544177
+Random 444854
+Random 268241
+Random 35924
+Random 27444
+Random 464894
+Random 318465
+Random 380015
+Random 891790
+Random 525753
+Random 560510
+Random 236123
+Random 23858
+Random 325143
+```
+
+Third, jobs run in this order: 1, 1, 0, 1, 0, 2, 2, 2, 2, 2, 2
+
+```zsh
+$ python lottery.py -j 3 -s 3
+ARG jlist
+ARG jobs 3
+ARG maxlen 10
+ARG maxticket 100
+ARG quantum 1
+ARG seed 3
+
+Here is the job list, with the run time of each job:
+  Job 0 ( length = 2, tickets = 54 )
+  Job 1 ( length = 3, tickets = 60 )
+  Job 2 ( length = 6, tickets = 6 )
+
+
+Here is the set of random numbers you will need (at most):
+Random 13168
+Random 837469
+Random 259354
+Random 234331
+Random 995645
+Random 470263
+Random 836462
+Random 476353
+Random 639068
+Random 150616
+Random 634861
+```
+
+---
+
+**Q2**: Now run with two specific jobs: each of length 10, but one (job 0) with just 1 ticket and the other (job 1) with 100 (e.g., `-l 10:1,10:100`).  What happens when the number of tickets is so imbalanced? Will job 0 ever run before job 1 completes? How often? In general, what does such a ticket imbalance do to the behavior of lottery scheduling?
+
+**A**: In this case, job 0 only got 1/101 chance to run, so it's very unlikely to run before job 1 completes. In general, the more tickets a job has, the more likely it will run.
+
+---
+
+**Q3**: When running with two jobs of length 100 and equal ticket allocations of 100 (-l 100:100,100:100), how unfair is the scheduler?  Run with some different random seeds to determine the (probabilistic) answer; let unfairness be determined by how much earlier one job finishes than the other.
+
+**A**: After tried with different random seeds, the outcome is quite fair as everytime the two jobs finish at almost the same time.
+
+---
+
+**Q4**: How does your answer to the previous question change as the quantum size (`-q`) gets larger?
+
+**A**: Increasing the quantum size will make it less fair as the scheduler has less chance to make a decision to switch the context between jobs.
+
+---
+
+**Q5**: Can you make a version of the graph that is found in the chapter?  What else would be worth exploring? How would the graph look with a stride scheduler?
+
+**A**: We can test the fairness metric with more jobs running in the same time. The fairness metric `F` for a stride scheduler would be more close to 1 as it gets the proportions probabilistically exactly right at the end of each scheduling cycle.
+
+## Part 3:  MLFQ Design

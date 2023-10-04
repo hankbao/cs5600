@@ -1272,7 +1272,12 @@ priority (the topmost queue).
 5. After some time period S, move all the jobs in the system
 to the topmost queue.
 
-In addition, we can try these strategies to improve the performance of MLFQ:
+Below is my MLFQ design with Classes and Activity:
+
+![MLFQ Class Diagram](./pics/class_diagram.jpg)
+![MLFQ Activity Diagram](pics/activity_diagram.jpg)
+
+In addition to the current design, we can try these strategies to improve the performance of MLFQ in future work:
 
 1. Dynamic number of queues according to the process we're currently having and their nature (I/O-bound or CPU-bound)
 2. Dynamic number of time slices according to the number of queue

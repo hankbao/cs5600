@@ -11,10 +11,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+
+#include <sys/types.h>
 #include <getopt.h>
 
 void print_usage() {
-    puts("Usage: memory-user -a --amount <mem_amount> [-t --time <iter_count>]");
+    puts("Usage: memory-user --amount <mem_amount> [--time <iter_count>]");
     puts("\t-a --amount <mem_amount>\tThe number of megabytes of memory the program will use.");
     puts("\t-t --time <iter_count>\t\tThe number of iterations on the allocated array the program will perform. If omitted, the program runs indefinitely.");
     puts("\t-h --help\t\t\tPrint this usage.");

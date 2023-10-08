@@ -21,16 +21,16 @@ void print_usage() {
 }
 
 int main(int argc, char *argv[]) {
-    int opt;
     int mem_amount = 0, iter_count = -1;
 
     struct option long_options[] = {
-        {"amount", required_argument, 0, 'a'},
-        {"time", required_argument, 0, 't'},
-        {"help", no_argument, 0, 'h'},
+        {"amount", required_argument, NULL, 'a'},
+        {"time", required_argument, NULL, 't'},
+        {"help", no_argument, NULL, 'h'},
         {0, 0, 0, 0}
     };
 
+    int opt;
     int option_index = 0;
     while ((opt = getopt_long(argc, argv, "a:t:h", long_options, &option_index)) != -1) {
         switch (opt) {

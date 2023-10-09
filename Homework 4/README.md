@@ -1,6 +1,6 @@
 # Homework 4
 
-## Part 1:  Chapter 13 Code
+## Part 1: Chapter 13 Code
 
 **Q2**: How much memory is in your system? How much is free?
 
@@ -293,3 +293,12 @@ $ pmap 16870
 ffffffffff600000      4K --x--   [ anon ]
  total           516520K
 ```
+
+## Part 2: MLFQ Implementation Comparisons
+In my implementation,
+
+In Zack's implementation,
+
+In Vrushal's implementation
+
+In Femi's implementation

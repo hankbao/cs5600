@@ -295,10 +295,21 @@ ffffffffff600000      4K --x--   [ anon ]
 ```
 
 ## Part 2: MLFQ Implementation Comparisons
-In my implementation,
 
-In Zack's implementation,
-
-In Vrushal's implementation
-
-In Femi's implementation
+| Feature | Zack | Hank | Femi | Vrushal |
+| :-------------: |:-------------:|:-------------:|:-------------:|:-------------:|
+| Language | C++ | Rust | | |
+| UI | print | print | | |
+| Configuration | Command Line | Command Line / File | | |
+| Multiple Queues | Y | Y |
+| Priority Reducing | Y | Y |
+| Priority Boosting | Y | Y |
+| Round-Robin | Y | Y |
+| Random Job | Y | N |
+| Job Adding | Y | Y |
+| I/O Performing | Y | Y |
+| I/O Bump | Y | Y |
+| I/O Stay | Y | Y |
+| Turnaround | Y | Y |
+| Response | Y | Y |
+| Idle | N | Y |

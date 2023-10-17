@@ -437,8 +437,508 @@ Virtual Address Trace
 
 ## Part 3: Chapter 17 Simulation
 
-**Q1**:
+**Q1**: First run with the flags `-n 10 -H 0 -p BEST -s 0` to generate a few random allocations and frees. Can you predict what alloc()/free() will return? Can you guess the state of the free list after each request? What do you notice about the free list over time?
+
+**A**: It's getting more and more external fragmentation.
+
+```zsh
+seed 0
+size 100
+baseAddr 1000
+headerSize 0
+alignment -1
+policy BEST
+listOrder ADDRSORT
+coalesce False
+numOps 10
+range 10
+percentAlloc 50
+allocList
+compute True
+
+ptr[0] = Alloc(3) returned 1000 (searched 1 elements)
+Free List [ Size 1 ]: [ addr:1003 sz:97 ]
+
+Free(ptr[0])
+returned 0
+Free List [ Size 2 ]: [ addr:1000 sz:3 ][ addr:1003 sz:97 ]
+
+ptr[1] = Alloc(5) returned 1003 (searched 2 elements)
+Free List [ Size 2 ]: [ addr:1000 sz:3 ][ addr:1008 sz:92 ]
+
+Free(ptr[1])
+returned 0
+Free List [ Size 3 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1008 sz:92 ]
+
+ptr[2] = Alloc(8) returned 1008 (searched 3 elements)
+Free List [ Size 3 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1016 sz:84 ]
+
+Free(ptr[2])
+returned 0
+Free List [ Size 4 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1008 sz:8 ][ addr:1016 sz:84 ]
+
+ptr[3] = Alloc(8) returned 1008 (searched 4 elements)
+Free List [ Size 3 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1016 sz:84 ]
+
+Free(ptr[3])
+returned 0
+Free List [ Size 4 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1008 sz:8 ][ addr:1016 sz:84 ]
+
+ptr[4] = Alloc(2) returned 1000 (searched 4 elements)
+Free List [ Size 4 ]: [ addr:1002 sz:1 ][ addr:1003 sz:5 ][ addr:1008 sz:8 ][ addr:1016 sz:84 ]
+
+ptr[5] = Alloc(7) returned 1008 (searched 4 elements)
+Free List [ Size 4 ]: [ addr:1002 sz:1 ][ addr:1003 sz:5 ][ addr:1015 sz:1 ][ addr:1016 sz:84 ]
+```
+
+---
+
+**Q2**: How are the results different when using a WORST fit policy to search the free list (`-p WORST`)? What changes?
+
+**A**: Without coalescing, it produces more external fragmentation than the BEST fit policy.
+
+```zsh
+seed 0
+size 100
+baseAddr 1000
+headerSize 0
+alignment -1
+policy WORST
+listOrder ADDRSORT
+coalesce False
+numOps 10
+range 10
+percentAlloc 50
+allocList
+compute True
+
+ptr[0] = Alloc(3) returned 1000 (searched 1 elements)
+Free List [ Size 1 ]: [ addr:1003 sz:97 ]
+
+Free(ptr[0])
+returned 0
+Free List [ Size 2 ]: [ addr:1000 sz:3 ][ addr:1003 sz:97 ]
+
+ptr[1] = Alloc(5) returned 1003 (searched 2 elements)
+Free List [ Size 2 ]: [ addr:1000 sz:3 ][ addr:1008 sz:92 ]
+
+Free(ptr[1])
+returned 0
+Free List [ Size 3 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1008 sz:92 ]
+
+ptr[2] = Alloc(8) returned 1008 (searched 3 elements)
+Free List [ Size 3 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1016 sz:84 ]
+
+Free(ptr[2])
+returned 0
+Free List [ Size 4 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1008 sz:8 ][ addr:1016 sz:84 ]
+
+ptr[3] = Alloc(8) returned 1016 (searched 4 elements)
+Free List [ Size 4 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1008 sz:8 ][ addr:1024 sz:76 ]
+
+Free(ptr[3])
+returned 0
+Free List [ Size 5 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1008 sz:8 ][ addr:1016 sz:8 ][ addr:1024 sz:76 ]
+
+ptr[4] = Alloc(2) returned 1024 (searched 5 elements)
+Free List [ Size 5 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1008 sz:8 ][ addr:1016 sz:8 ][ addr:1026 sz:74 ]
+
+ptr[5] = Alloc(7) returned 1026 (searched 5 elements)
+Free List [ Size 5 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1008 sz:8 ][ addr:1016 sz:8 ][ addr:1033 sz:67 ]
+```
+
+---
+
+**Q3**: What about when using FIRST fit (`-p FIRST`)? What speeds up when you use first fit?
+
+**A**: With FIRST fit policy, the searching process speeds up.
+
+```zsh
+seed 0
+size 100
+baseAddr 1000
+headerSize 0
+alignment -1
+policy FIRST
+listOrder ADDRSORT
+coalesce False
+numOps 10
+range 10
+percentAlloc 50
+allocList
+compute True
+
+ptr[0] = Alloc(3) returned 1000 (searched 1 elements)
+Free List [ Size 1 ]: [ addr:1003 sz:97 ]
+
+Free(ptr[0])
+returned 0
+Free List [ Size 2 ]: [ addr:1000 sz:3 ][ addr:1003 sz:97 ]
+
+ptr[1] = Alloc(5) returned 1003 (searched 2 elements)
+Free List [ Size 2 ]: [ addr:1000 sz:3 ][ addr:1008 sz:92 ]
+
+Free(ptr[1])
+returned 0
+Free List [ Size 3 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1008 sz:92 ]
+
+ptr[2] = Alloc(8) returned 1008 (searched 3 elements)
+Free List [ Size 3 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1016 sz:84 ]
+
+Free(ptr[2])
+returned 0
+Free List [ Size 4 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1008 sz:8 ][ addr:1016 sz:84 ]
+
+ptr[3] = Alloc(8) returned 1008 (searched 3 elements)
+Free List [ Size 3 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1016 sz:84 ]
+
+Free(ptr[3])
+returned 0
+Free List [ Size 4 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1008 sz:8 ][ addr:1016 sz:84 ]
+
+ptr[4] = Alloc(2) returned 1000 (searched 1 elements)
+Free List [ Size 4 ]: [ addr:1002 sz:1 ][ addr:1003 sz:5 ][ addr:1008 sz:8 ][ addr:1016 sz:84 ]
+
+ptr[5] = Alloc(7) returned 1008 (searched 3 elements)
+Free List [ Size 4 ]: [ addr:1002 sz:1 ][ addr:1003 sz:5 ][ addr:1015 sz:1 ][ addr:1016 sz:84 ]
+```
+
+---
+
+**Q4**: For the above questions, how the list is kept ordered can affect the time it takes to find a free location for some of the policies. Use the different free list orderings (`-l ADDRSORT, -l SIZESORT+, -l SIZESORT-`) to see how the policies and the list orderings interact.
 
 **A**:
 
+BEST + SIZESORT+
+
+```zsh
+seed 0
+size 100
+baseAddr 1000
+headerSize 0
+alignment -1
+policy BEST
+listOrder SIZESORT+
+coalesce False
+numOps 10
+range 10
+percentAlloc 50
+allocList
+compute True
+
+ptr[0] = Alloc(3) returned 1000 (searched 1 elements)
+Free List [ Size 1 ]: [ addr:1003 sz:97 ]
+
+Free(ptr[0])
+returned 0
+Free List [ Size 2 ]: [ addr:1000 sz:3 ][ addr:1003 sz:97 ]
+
+ptr[1] = Alloc(5) returned 1003 (searched 2 elements)
+Free List [ Size 2 ]: [ addr:1000 sz:3 ][ addr:1008 sz:92 ]
+
+Free(ptr[1])
+returned 0
+Free List [ Size 3 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1008 sz:92 ]
+
+ptr[2] = Alloc(8) returned 1008 (searched 3 elements)
+Free List [ Size 3 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1016 sz:84 ]
+
+Free(ptr[2])
+returned 0
+Free List [ Size 4 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1008 sz:8 ][ addr:1016 sz:84 ]
+
+ptr[3] = Alloc(8) returned 1008 (searched 4 elements)
+Free List [ Size 3 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1016 sz:84 ]
+
+Free(ptr[3])
+returned 0
+Free List [ Size 4 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1008 sz:8 ][ addr:1016 sz:84 ]
+
+ptr[4] = Alloc(2) returned 1000 (searched 4 elements)
+Free List [ Size 4 ]: [ addr:1002 sz:1 ][ addr:1003 sz:5 ][ addr:1008 sz:8 ][ addr:1016 sz:84 ]
+
+ptr[5] = Alloc(7) returned 1008 (searched 4 elements)
+Free List [ Size 4 ]: [ addr:1002 sz:1 ][ addr:1003 sz:5 ][ addr:1015 sz:1 ][ addr:1016 sz:84 ]
+```
+
+BEST + SIZESORT-
+
+```zsh
+seed 0
+size 100
+baseAddr 1000
+headerSize 0
+alignment -1
+policy BEST
+listOrder SIZESORT-
+coalesce False
+numOps 10
+range 10
+percentAlloc 50
+allocList
+compute True
+
+ptr[0] = Alloc(3) returned 1000 (searched 1 elements)
+Free List [ Size 1 ]: [ addr:1003 sz:97 ]
+
+Free(ptr[0])
+returned 0
+Free List [ Size 2 ]: [ addr:1003 sz:97 ][ addr:1000 sz:3 ]
+
+ptr[1] = Alloc(5) returned 1003 (searched 2 elements)
+Free List [ Size 2 ]: [ addr:1008 sz:92 ][ addr:1000 sz:3 ]
+
+Free(ptr[1])
+returned 0
+Free List [ Size 3 ]: [ addr:1008 sz:92 ][ addr:1003 sz:5 ][ addr:1000 sz:3 ]
+
+ptr[2] = Alloc(8) returned 1008 (searched 3 elements)
+Free List [ Size 3 ]: [ addr:1016 sz:84 ][ addr:1003 sz:5 ][ addr:1000 sz:3 ]
+
+Free(ptr[2])
+returned 0
+Free List [ Size 4 ]: [ addr:1016 sz:84 ][ addr:1008 sz:8 ][ addr:1003 sz:5 ][ addr:1000 sz:3 ]
+
+ptr[3] = Alloc(8) returned 1008 (searched 4 elements)
+Free List [ Size 3 ]: [ addr:1016 sz:84 ][ addr:1003 sz:5 ][ addr:1000 sz:3 ]
+
+Free(ptr[3])
+returned 0
+Free List [ Size 4 ]: [ addr:1016 sz:84 ][ addr:1008 sz:8 ][ addr:1003 sz:5 ][ addr:1000 sz:3 ]
+
+ptr[4] = Alloc(2) returned 1000 (searched 4 elements)
+Free List [ Size 4 ]: [ addr:1016 sz:84 ][ addr:1008 sz:8 ][ addr:1003 sz:5 ][ addr:1002 sz:1 ]
+
+ptr[5] = Alloc(7) returned 1008 (searched 4 elements)
+Free List [ Size 4 ]: [ addr:1016 sz:84 ][ addr:1015 sz:1 ][ addr:1003 sz:5 ][ addr:1002 sz:1 ]
+```
+
+WORST + SIZESORT+
+
+```zsh
+seed 0
+size 100
+baseAddr 1000
+headerSize 0
+alignment -1
+policy WORST
+listOrder SIZESORT+
+coalesce False
+numOps 10
+range 10
+percentAlloc 50
+allocList
+compute True
+
+ptr[0] = Alloc(3) returned 1000 (searched 1 elements)
+Free List [ Size 1 ]: [ addr:1003 sz:97 ]
+
+Free(ptr[0])
+returned 0
+Free List [ Size 2 ]: [ addr:1000 sz:3 ][ addr:1003 sz:97 ]
+
+ptr[1] = Alloc(5) returned 1003 (searched 2 elements)
+Free List [ Size 2 ]: [ addr:1000 sz:3 ][ addr:1008 sz:92 ]
+
+Free(ptr[1])
+returned 0
+Free List [ Size 3 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1008 sz:92 ]
+
+ptr[2] = Alloc(8) returned 1008 (searched 3 elements)
+Free List [ Size 3 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1016 sz:84 ]
+
+Free(ptr[2])
+returned 0
+Free List [ Size 4 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1008 sz:8 ][ addr:1016 sz:84 ]
+
+ptr[3] = Alloc(8) returned 1016 (searched 4 elements)
+Free List [ Size 4 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1008 sz:8 ][ addr:1024 sz:76 ]
+
+Free(ptr[3])
+returned 0
+Free List [ Size 5 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1008 sz:8 ][ addr:1016 sz:8 ][ addr:1024 sz:76 ]
+
+ptr[4] = Alloc(2) returned 1024 (searched 5 elements)
+Free List [ Size 5 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1008 sz:8 ][ addr:1016 sz:8 ][ addr:1026 sz:74 ]
+
+ptr[5] = Alloc(7) returned 1026 (searched 5 elements)
+Free List [ Size 5 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1008 sz:8 ][ addr:1016 sz:8 ][ addr:1033 sz:67 ]
+```
+
+WORST + SIZESORT-
+
+```zsh
+seed 0
+size 100
+baseAddr 1000
+headerSize 0
+alignment -1
+policy WORST
+listOrder SIZESORT-
+coalesce False
+numOps 10
+range 10
+percentAlloc 50
+allocList
+compute True
+
+ptr[0] = Alloc(3) returned 1000 (searched 1 elements)
+Free List [ Size 1 ]: [ addr:1003 sz:97 ]
+
+Free(ptr[0])
+returned 0
+Free List [ Size 2 ]: [ addr:1003 sz:97 ][ addr:1000 sz:3 ]
+
+ptr[1] = Alloc(5) returned 1003 (searched 2 elements)
+Free List [ Size 2 ]: [ addr:1008 sz:92 ][ addr:1000 sz:3 ]
+
+Free(ptr[1])
+returned 0
+Free List [ Size 3 ]: [ addr:1008 sz:92 ][ addr:1003 sz:5 ][ addr:1000 sz:3 ]
+
+ptr[2] = Alloc(8) returned 1008 (searched 3 elements)
+Free List [ Size 3 ]: [ addr:1016 sz:84 ][ addr:1003 sz:5 ][ addr:1000 sz:3 ]
+
+Free(ptr[2])
+returned 0
+Free List [ Size 4 ]: [ addr:1016 sz:84 ][ addr:1008 sz:8 ][ addr:1003 sz:5 ][ addr:1000 sz:3 ]
+
+ptr[3] = Alloc(8) returned 1016 (searched 4 elements)
+Free List [ Size 4 ]: [ addr:1024 sz:76 ][ addr:1008 sz:8 ][ addr:1003 sz:5 ][ addr:1000 sz:3 ]
+
+Free(ptr[3])
+returned 0
+Free List [ Size 5 ]: [ addr:1024 sz:76 ][ addr:1008 sz:8 ][ addr:1016 sz:8 ][ addr:1003 sz:5 ][ addr:1000 sz:3 ]
+
+ptr[4] = Alloc(2) returned 1024 (searched 5 elements)
+Free List [ Size 5 ]: [ addr:1026 sz:74 ][ addr:1008 sz:8 ][ addr:1016 sz:8 ][ addr:1003 sz:5 ][ addr:1000 sz:3 ]
+
+ptr[5] = Alloc(7) returned 1026 (searched 5 elements)
+Free List [ Size 5 ]: [ addr:1033 sz:67 ][ addr:1008 sz:8 ][ addr:1016 sz:8 ][ addr:1003 sz:5 ][ addr:1000 sz:3 ]
+```
+
+FIRST + SIZESORT+
+
+```zsh
+seed 0
+size 100
+baseAddr 1000
+headerSize 0
+alignment -1
+policy FIRST
+listOrder SIZESORT+
+coalesce False
+numOps 10
+range 10
+percentAlloc 50
+allocList
+compute True
+
+ptr[0] = Alloc(3) returned 1000 (searched 1 elements)
+Free List [ Size 1 ]: [ addr:1003 sz:97 ]
+
+Free(ptr[0])
+returned 0
+Free List [ Size 2 ]: [ addr:1000 sz:3 ][ addr:1003 sz:97 ]
+
+ptr[1] = Alloc(5) returned 1003 (searched 2 elements)
+Free List [ Size 2 ]: [ addr:1000 sz:3 ][ addr:1008 sz:92 ]
+
+Free(ptr[1])
+returned 0
+Free List [ Size 3 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1008 sz:92 ]
+
+ptr[2] = Alloc(8) returned 1008 (searched 3 elements)
+Free List [ Size 3 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1016 sz:84 ]
+
+Free(ptr[2])
+returned 0
+Free List [ Size 4 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1008 sz:8 ][ addr:1016 sz:84 ]
+
+ptr[3] = Alloc(8) returned 1008 (searched 3 elements)
+Free List [ Size 3 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1016 sz:84 ]
+
+Free(ptr[3])
+returned 0
+Free List [ Size 4 ]: [ addr:1000 sz:3 ][ addr:1003 sz:5 ][ addr:1008 sz:8 ][ addr:1016 sz:84 ]
+
+ptr[4] = Alloc(2) returned 1000 (searched 1 elements)
+Free List [ Size 4 ]: [ addr:1002 sz:1 ][ addr:1003 sz:5 ][ addr:1008 sz:8 ][ addr:1016 sz:84 ]
+
+ptr[5] = Alloc(7) returned 1008 (searched 3 elements)
+Free List [ Size 4 ]: [ addr:1002 sz:1 ][ addr:1003 sz:5 ][ addr:1015 sz:1 ][ addr:1016 sz:84 ]
+```
+
+FIRST + SIZESORT-
+
+```zsh
+seed 0
+size 100
+baseAddr 1000
+headerSize 0
+alignment -1
+policy FIRST
+listOrder SIZESORT-
+coalesce False
+numOps 10
+range 10
+percentAlloc 50
+allocList
+compute True
+
+ptr[0] = Alloc(3) returned 1000 (searched 1 elements)
+Free List [ Size 1 ]: [ addr:1003 sz:97 ]
+
+Free(ptr[0])
+returned 0
+Free List [ Size 2 ]: [ addr:1003 sz:97 ][ addr:1000 sz:3 ]
+
+ptr[1] = Alloc(5) returned 1003 (searched 1 elements)
+Free List [ Size 2 ]: [ addr:1008 sz:92 ][ addr:1000 sz:3 ]
+
+Free(ptr[1])
+returned 0
+Free List [ Size 3 ]: [ addr:1008 sz:92 ][ addr:1003 sz:5 ][ addr:1000 sz:3 ]
+
+ptr[2] = Alloc(8) returned 1008 (searched 1 elements)
+Free List [ Size 3 ]: [ addr:1016 sz:84 ][ addr:1003 sz:5 ][ addr:1000 sz:3 ]
+
+Free(ptr[2])
+returned 0
+Free List [ Size 4 ]: [ addr:1016 sz:84 ][ addr:1008 sz:8 ][ addr:1003 sz:5 ][ addr:1000 sz:3 ]
+
+ptr[3] = Alloc(8) returned 1016 (searched 1 elements)
+Free List [ Size 4 ]: [ addr:1024 sz:76 ][ addr:1008 sz:8 ][ addr:1003 sz:5 ][ addr:1000 sz:3 ]
+
+Free(ptr[3])
+returned 0
+Free List [ Size 5 ]: [ addr:1024 sz:76 ][ addr:1008 sz:8 ][ addr:1016 sz:8 ][ addr:1003 sz:5 ][ addr:1000 sz:3 ]
+
+ptr[4] = Alloc(2) returned 1024 (searched 1 elements)
+Free List [ Size 5 ]: [ addr:1026 sz:74 ][ addr:1008 sz:8 ][ addr:1016 sz:8 ][ addr:1003 sz:5 ][ addr:1000 sz:3 ]
+
+ptr[5] = Alloc(7) returned 1026 (searched 1 elements)
+Free List [ Size 5 ]: [ addr:1033 sz:67 ][ addr:1008 sz:8 ][ addr:1016 sz:8 ][ addr:1003 sz:5 ][ addr:1000 sz:3 ]
+```
+
 ---
+
+**Q5**: Coalescing of a free list can be quite important. Increase the number of random allocations (say to `-n 1000`). What happens to larger allocation requests over time? Run with and without coalescing (i.e., without and with the `-C` flag). What differences in outcome do you see? How big is the free list over time in each case? Does the ordering of the list matter in this case?
+
+**A**: With the `-C` flag, the free list is getting smaller and smaller, as coalescing is helping to reduce the number of allocations. Ording of the list matters if using the FIRST fit algorithm.
+
+---
+
+**Q6**: What happens when you change the percent allocated fraction `-P` to higher than 50? What happens to allocations as it nears 100?  What about as the percent nears 0?
+
+**A**: The more the percent allocated fraction is, the more external fragmentation is produced. Reducing it to near 0 won't do much to help ease the external fragmentation.
+
+---
+
+**Q7**: What kind of specific requests can you make to generate a highly-fragmented free space? Use the `-A` flag to create fragmented free lists, and see how different policies and options change the organization of the free list.
+
+**A**: Requests without coalescing will make the free list highly-fragmented.
+
+```zsh
+$ python malloc.py -H 0 -p FIRST -s 0 -A +2,-0,+4,-1,+8,-2,+16,-3,+32,-4,+64,-5,+128,-6,+256,-7,+512,-8,+1024,-9,+2048,-10,+4096,-11,+8192,-12,+16382,-13 -S 32764
+```

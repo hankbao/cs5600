@@ -9,7 +9,6 @@
 
 #include <getopt.h>
 
-
 #ifdef __APPLE__
 #include <mach/mach_time.h>
 #elif __linux__
@@ -123,17 +122,19 @@ int main(int argc, char *argv[]) {
     int opt;
     long long num_pages = 0;
     long long num_trials = 0;
+    int verbose = 0;
 
     struct option long_options[] = {
         {"pages", required_argument, NULL, 'p'},
         {"trials", required_argument, NULL, 't'},
+        {"verbose",no_argument, NULL, 'v'},
         {0, 0, 0, 0}
     };
 
     while (1) {
         int option_index = 0;
 
-        opt = getopt_long(argc, argv, "p:t:", long_options, &option_index);
+        opt = getopt_long(argc, argv, "p:t:d", long_options, &option_index);
 
         if (opt == -1) {
             break;  // End of options
@@ -145,6 +146,9 @@ int main(int argc, char *argv[]) {
                 break;
             case 't':
                 num_trials = atoll(optarg);
+                break;
+            case 'v':
+                verbose = 1;
                 break;
             case '?':
                 fprintf(stderr, "Usage: %s --pages=<num_pages> --trials=<num_trials>\n", argv[0]);
@@ -159,11 +163,17 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    printf("Number of pages: %lld\n", num_pages);
-    printf("Number of trials: %lld\n", num_trials);
+    if (verbose) {
+        printf("Number of pages: %lld\n", num_pages);
+        printf("Number of trials: %lld\n", num_trials);
+    } else {
+        printf("%lld,", num_pages);
+    }
 
     int pagesize = getpagesize();
-    printf("Pagesize: %d\n", pagesize);
+    if (verbose) {
+        printf("Pagesize: %d\n", pagesize);
+    }
 
     const int jump = pagesize / sizeof(int);
     int* addr = (int*) malloc(num_pages * jump * sizeof(int));
@@ -178,8 +188,14 @@ int main(int argc, char *argv[]) {
 
     long double total = timer_duration_nanoseconds(&timer);
     long double times = num_pages * num_trials;
-    printf("Total: %Lf nanoseconds\n", total);
-    printf("Avg: %Lf nanoseconds\n", total / times);
+    long double avg = total / times;
+
+    if (verbose) {
+        printf("Total: %Lf nanoseconds\n", total);
+        printf("Avg: %Lf nanoseconds\n", avg);
+    } else {
+        printf("%lld\n", (long long) avg);
+    }
 
     free(addr);
     return EXIT_SUCCESS;

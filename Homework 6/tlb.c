@@ -11,6 +11,9 @@
 
 #ifdef __APPLE__
 #include <mach/mach_time.h>
+#include <mach/mach_init.h>
+#include <mach/thread_policy.h>
+#include <mach/thread_act.h>
 #elif __linux__
 #include <time.h>
 #include <string.h>
@@ -115,6 +118,35 @@ long double timer_duration_nanoseconds(Timer* timer) {
     return (long double)elapsed_ticks / timer->frequency * 1e9;
 }
 
+#ifdef __linux__
+void set_cpu_affinity() {
+    cpu_set_t set;
+    CPU_ZERO(&set);
+    CPU_SET(0, &set);
+
+    if (sched_setaffinity(getpid(), sizeof(set), &set) < 0) {
+        perror("sched_setaffinity");
+        exit(EXIT_FAILURE);
+    }
+}
+#endif
+
+#ifdef __APPLE__
+void set_cpu_affinity() {
+    // thread_affinity_policy_data_t policy = {1};
+    // thread_port_t thread = mach_thread_self();
+    // kern_return_t ret = thread_policy_set(thread, THREAD_AFFINITY_POLICY, (thread_policy_t)&policy, 1);
+
+    // if (KERN_SUCCESS != ret) {
+    //     perror("thread_policy_set");
+    //     exit(EXIT_FAILURE);
+    // }
+
+    // maybe we should free the thread port after we're done with it
+    // mach_port_deallocate(mach_task_self(), thread);
+}
+#endif
+
 int main(int argc, char *argv[]) {
     Timer timer = {0};
     timer_init(&timer);
@@ -162,6 +194,9 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Both --pages and --trials must be provided and greater than 0.\n");
         exit(EXIT_FAILURE);
     }
+
+    // Set CPU affinity
+    set_cpu_affinity();
 
     if (verbose) {
         printf("Number of pages: %lld\n", num_pages);

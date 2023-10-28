@@ -73,3 +73,43 @@ what happens if the address-space size is bigger than physical memory?
 **A**: It won't work as the physical memory size must be GREATER than address space size.
 
 ## Part 2: Chapter 19 Measurement
+
+**Q1**: For timing, you’ll need to use a timer (e.g., `gettimeofday()`).  How precise is such a timer? How long does an operation have to take in order for you to time it precisely? (this will help determine how many times, in a loop, you’ll have to repeat a page access in order to time it successfully)
+
+**A**: I use `rdstc` on the Intel platform and `cntfrq` on the ARM platform. Both of them can provide cycle-level precision. The operation should be longer than a couple of nanoseconds.
+
+---
+
+**Q2**: Write the program, called `tlb.c`, that can roughly measure the cost of accessing each page. Inputs to the program should be: the number of pages to touch and the number of trials.
+
+**A**: Please see the code in [tlb.c](./tlb.c).
+
+---
+
+**Q3**: Now write a script in your favorite scripting language (bash?) to run this program, while varying the number of pages accessed from 1 up to a few thousand, perhaps incrementing by a factor of two per iteration. Run the script on different machines and gather some data. How many trials are needed to get reliable measurements?
+
+**A**: I use 1000 as the number of trials. But the page number also matters.
+
+---
+
+**Q4**: Next, graph the results, making a graph that looks similar to the one above. Use a good tool like `ploticus` or even `zplot`. Visualization usually makes the data much easier to digest; why do you think that is?
+
+**A**: I use `zplot` to draw the output. Result after 64 pages tends to be stable. ![TLB Size Measurement](pics/measurement.jpg)
+
+---
+
+**Q5**: One thing to watch out for is compiler optimization. Compilers do all sorts of clever things, including removing loops which increment values that no other part of the program subsequently uses. How can you ensure the compiler does not remove the main loop above from your TLB size estimator?
+
+**A**: I disable the compiler optimization and build my program with debug enabled. You can check the disassembly of your program to see if the compiler did clever things you don't like with tools like `otool` or even `gdb`.
+
+---
+
+**Q6**: Another thing to watch out for is the fact that most systems today ship with multiple CPUs, and each CPU, of course, has its own TLB hierarchy. To really get good measurements, you have to run your code on just one CPU, instead of letting the scheduler bounce it from one CPU to the next. How can you do that? (hint: look up “pinning a thread” on Google for some clues) What will happen if you don’t do this, and the code moves from one CPU to the other?
+
+**A**: We can use `sched_setaffinity` system call to pin our process (main thread) to a specific CPU core on Linux.
+
+---
+
+**Q7**: Another issue that might arise relates to initialization. If you don’t initialize the array a above before accessing it, the first time you access it will be very expensive, due to initial access costs such as demand zeroing. Will this affect your code and its timing? What can you do to counterbalance these potential costs?
+
+**A**: I'm not aware of any demand zeroing costs with a dynamically allocated array in C. But you can always zero it out manually before starting the measurement.

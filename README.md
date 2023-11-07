@@ -8,3 +8,4 @@ All the labs and assignments for cs5600
 - [Homework 4: Chapters 10, 13, 14 and MLFQ report!](Homework%204/README.md)
 - [Homework 5: Chapters 15-17](Homework%205/README.md)
 - [Homework 6: Chapters 18-19, and VM simulator DESIGN!](Homework%206/README.md)
+- [Homework 7: Chapters 20-22, and REFINED VM simulator pitch!](Homework%207/README.md)

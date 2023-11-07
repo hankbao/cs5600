@@ -261,8 +261,551 @@ Filename				Type		Size	Used	Priority
 
 ## Part 3: Chapter 22 Simulation
 
-**Q1**:
+**Q1**: Generate random addresses with the following arguments: `-s 0 -n 10`, `-s 1 -n 10`, and `-s 2 -n 10`. Change the policy from FIFO, to LRU, to OPT. Compute whether each access in said address traces are hits or misses
 
 **A**:
 
+```zsh
+$ python paging-policy.py -s 0 -n 10 -p FIFO
+ARG addresses -1
+ARG addressfile
+ARG numaddrs 10
+ARG policy FIFO
+ARG clockbits 2
+ARG cachesize 3
+ARG maxpage 10
+ARG seed 0
+ARG notrace False
+
+Solving...
+
+Access: 8  MISS FirstIn ->          [8] <- Lastin  Replaced:- [Hits:0 Misses:1]
+Access: 7  MISS FirstIn ->       [8, 7] <- Lastin  Replaced:- [Hits:0 Misses:2]
+Access: 4  MISS FirstIn ->    [8, 7, 4] <- Lastin  Replaced:- [Hits:0 Misses:3]
+Access: 2  MISS FirstIn ->    [7, 4, 2] <- Lastin  Replaced:8 [Hits:0 Misses:4]
+Access: 5  MISS FirstIn ->    [4, 2, 5] <- Lastin  Replaced:7 [Hits:0 Misses:5]
+Access: 4  HIT  FirstIn ->    [4, 2, 5] <- Lastin  Replaced:- [Hits:1 Misses:5]
+Access: 7  MISS FirstIn ->    [2, 5, 7] <- Lastin  Replaced:4 [Hits:1 Misses:6]
+Access: 3  MISS FirstIn ->    [5, 7, 3] <- Lastin  Replaced:2 [Hits:1 Misses:7]
+Access: 4  MISS FirstIn ->    [7, 3, 4] <- Lastin  Replaced:5 [Hits:1 Misses:8]
+Access: 5  MISS FirstIn ->    [3, 4, 5] <- Lastin  Replaced:7 [Hits:1 Misses:9]
+
+FINALSTATS hits 1   misses 9   hitrate 10.00
+
+$ python paging-policy.py -s 0 -n 10 -p LRU
+ARG addresses -1
+ARG addressfile
+ARG numaddrs 10
+ARG policy LRU
+ARG clockbits 2
+ARG cachesize 3
+ARG maxpage 10
+ARG seed 0
+ARG notrace False
+
+Solving...
+
+Access: 8  MISS LRU ->          [8] <- MRU Replaced:- [Hits:0 Misses:1]
+Access: 7  MISS LRU ->       [8, 7] <- MRU Replaced:- [Hits:0 Misses:2]
+Access: 4  MISS LRU ->    [8, 7, 4] <- MRU Replaced:- [Hits:0 Misses:3]
+Access: 2  MISS LRU ->    [7, 4, 2] <- MRU Replaced:8 [Hits:0 Misses:4]
+Access: 5  MISS LRU ->    [4, 2, 5] <- MRU Replaced:7 [Hits:0 Misses:5]
+Access: 4  HIT  LRU ->    [2, 5, 4] <- MRU Replaced:- [Hits:1 Misses:5]
+Access: 7  MISS LRU ->    [5, 4, 7] <- MRU Replaced:2 [Hits:1 Misses:6]
+Access: 3  MISS LRU ->    [4, 7, 3] <- MRU Replaced:5 [Hits:1 Misses:7]
+Access: 4  HIT  LRU ->    [7, 3, 4] <- MRU Replaced:- [Hits:2 Misses:7]
+Access: 5  MISS LRU ->    [3, 4, 5] <- MRU Replaced:7 [Hits:2 Misses:8]
+
+FINALSTATS hits 2   misses 8   hitrate 20.00
+
+$ python paging-policy.py -s 0 -n 10 -p OPT
+ARG addresses -1
+ARG addressfile
+ARG numaddrs 10
+ARG policy OPT
+ARG clockbits 2
+ARG cachesize 3
+ARG maxpage 10
+ARG seed 0
+ARG notrace False
+
+Solving...
+
+Access: 8  MISS Left  ->          [8] <- Right Replaced:- [Hits:0 Misses:1]
+Access: 7  MISS Left  ->       [8, 7] <- Right Replaced:- [Hits:0 Misses:2]
+Access: 4  MISS Left  ->    [8, 7, 4] <- Right Replaced:- [Hits:0 Misses:3]
+Access: 2  MISS Left  ->    [7, 4, 2] <- Right Replaced:8 [Hits:0 Misses:4]
+Access: 5  MISS Left  ->    [7, 4, 5] <- Right Replaced:2 [Hits:0 Misses:5]
+Access: 4  HIT  Left  ->    [7, 4, 5] <- Right Replaced:- [Hits:1 Misses:5]
+Access: 7  HIT  Left  ->    [7, 4, 5] <- Right Replaced:- [Hits:2 Misses:5]
+Access: 3  MISS Left  ->    [4, 5, 3] <- Right Replaced:7 [Hits:2 Misses:6]
+Access: 4  HIT  Left  ->    [4, 5, 3] <- Right Replaced:- [Hits:3 Misses:6]
+Access: 5  HIT  Left  ->    [4, 5, 3] <- Right Replaced:- [Hits:4 Misses:6]
+
+FINALSTATS hits 4   misses 6   hitrate 40.00
+```
+
+```zsh
+$ python paging-policy.py -s 1 -n 10 -p FIFO
+ARG addresses -1
+ARG addressfile
+ARG numaddrs 10
+ARG policy FIFO
+ARG clockbits 2
+ARG cachesize 3
+ARG maxpage 10
+ARG seed 1
+ARG notrace False
+
+Solving...
+
+Access: 1  MISS FirstIn ->          [1] <- Lastin  Replaced:- [Hits:0 Misses:1]
+Access: 8  MISS FirstIn ->       [1, 8] <- Lastin  Replaced:- [Hits:0 Misses:2]
+Access: 7  MISS FirstIn ->    [1, 8, 7] <- Lastin  Replaced:- [Hits:0 Misses:3]
+Access: 2  MISS FirstIn ->    [8, 7, 2] <- Lastin  Replaced:1 [Hits:0 Misses:4]
+Access: 4  MISS FirstIn ->    [7, 2, 4] <- Lastin  Replaced:8 [Hits:0 Misses:5]
+Access: 4  HIT  FirstIn ->    [7, 2, 4] <- Lastin  Replaced:- [Hits:1 Misses:5]
+Access: 6  MISS FirstIn ->    [2, 4, 6] <- Lastin  Replaced:7 [Hits:1 Misses:6]
+Access: 7  MISS FirstIn ->    [4, 6, 7] <- Lastin  Replaced:2 [Hits:1 Misses:7]
+Access: 0  MISS FirstIn ->    [6, 7, 0] <- Lastin  Replaced:4 [Hits:1 Misses:8]
+Access: 0  HIT  FirstIn ->    [6, 7, 0] <- Lastin  Replaced:- [Hits:2 Misses:8]
+
+FINALSTATS hits 2   misses 8   hitrate 20.00
+
+$ python paging-policy.py -s 1 -n 10 -p LRU
+ARG addresses -1
+ARG addressfile
+ARG numaddrs 10
+ARG policy LRU
+ARG clockbits 2
+ARG cachesize 3
+ARG maxpage 10
+ARG seed 1
+ARG notrace False
+
+Solving...
+
+Access: 1  MISS LRU ->          [1] <- MRU Replaced:- [Hits:0 Misses:1]
+Access: 8  MISS LRU ->       [1, 8] <- MRU Replaced:- [Hits:0 Misses:2]
+Access: 7  MISS LRU ->    [1, 8, 7] <- MRU Replaced:- [Hits:0 Misses:3]
+Access: 2  MISS LRU ->    [8, 7, 2] <- MRU Replaced:1 [Hits:0 Misses:4]
+Access: 4  MISS LRU ->    [7, 2, 4] <- MRU Replaced:8 [Hits:0 Misses:5]
+Access: 4  HIT  LRU ->    [7, 2, 4] <- MRU Replaced:- [Hits:1 Misses:5]
+Access: 6  MISS LRU ->    [2, 4, 6] <- MRU Replaced:7 [Hits:1 Misses:6]
+Access: 7  MISS LRU ->    [4, 6, 7] <- MRU Replaced:2 [Hits:1 Misses:7]
+Access: 0  MISS LRU ->    [6, 7, 0] <- MRU Replaced:4 [Hits:1 Misses:8]
+Access: 0  HIT  LRU ->    [6, 7, 0] <- MRU Replaced:- [Hits:2 Misses:8]
+
+FINALSTATS hits 2   misses 8   hitrate 20.00
+
+$ python paging-policy.py -s 1 -n 10 -p OPT
+ARG addresses -1
+ARG addressfile
+ARG numaddrs 10
+ARG policy OPT
+ARG clockbits 2
+ARG cachesize 3
+ARG maxpage 10
+ARG seed 1
+ARG notrace False
+
+Solving...
+
+Access: 1  MISS Left  ->          [1] <- Right Replaced:- [Hits:0 Misses:1]
+Access: 8  MISS Left  ->       [1, 8] <- Right Replaced:- [Hits:0 Misses:2]
+Access: 7  MISS Left  ->    [1, 8, 7] <- Right Replaced:- [Hits:0 Misses:3]
+Access: 2  MISS Left  ->    [1, 7, 2] <- Right Replaced:8 [Hits:0 Misses:4]
+Access: 4  MISS Left  ->    [1, 7, 4] <- Right Replaced:2 [Hits:0 Misses:5]
+Access: 4  HIT  Left  ->    [1, 7, 4] <- Right Replaced:- [Hits:1 Misses:5]
+Access: 6  MISS Left  ->    [1, 7, 6] <- Right Replaced:4 [Hits:1 Misses:6]
+Access: 7  HIT  Left  ->    [1, 7, 6] <- Right Replaced:- [Hits:2 Misses:6]
+Access: 0  MISS Left  ->    [1, 7, 0] <- Right Replaced:6 [Hits:2 Misses:7]
+Access: 0  HIT  Left  ->    [1, 7, 0] <- Right Replaced:- [Hits:3 Misses:7]
+
+FINALSTATS hits 3   misses 7   hitrate 30.00
+```
+
+```zsh
+$ python paging-policy.py -s 2 -n 10 -p FIFO
+ARG addresses -1
+ARG addressfile
+ARG numaddrs 10
+ARG policy FIFO
+ARG clockbits 2
+ARG cachesize 3
+ARG maxpage 10
+ARG seed 2
+ARG notrace False
+
+Solving...
+
+Access: 9  MISS FirstIn ->          [9] <- Lastin  Replaced:- [Hits:0 Misses:1]
+Access: 9  HIT  FirstIn ->          [9] <- Lastin  Replaced:- [Hits:1 Misses:1]
+Access: 0  MISS FirstIn ->       [9, 0] <- Lastin  Replaced:- [Hits:1 Misses:2]
+Access: 0  HIT  FirstIn ->       [9, 0] <- Lastin  Replaced:- [Hits:2 Misses:2]
+Access: 8  MISS FirstIn ->    [9, 0, 8] <- Lastin  Replaced:- [Hits:2 Misses:3]
+Access: 7  MISS FirstIn ->    [0, 8, 7] <- Lastin  Replaced:9 [Hits:2 Misses:4]
+Access: 6  MISS FirstIn ->    [8, 7, 6] <- Lastin  Replaced:0 [Hits:2 Misses:5]
+Access: 3  MISS FirstIn ->    [7, 6, 3] <- Lastin  Replaced:8 [Hits:2 Misses:6]
+Access: 6  HIT  FirstIn ->    [7, 6, 3] <- Lastin  Replaced:- [Hits:3 Misses:6]
+Access: 6  HIT  FirstIn ->    [7, 6, 3] <- Lastin  Replaced:- [Hits:4 Misses:6]
+
+FINALSTATS hits 4   misses 6   hitrate 40.00
+
+$ python paging-policy.py -s 2 -n 10 -p LRU
+ARG addresses -1
+ARG addressfile
+ARG numaddrs 10
+ARG policy LRU
+ARG clockbits 2
+ARG cachesize 3
+ARG maxpage 10
+ARG seed 2
+ARG notrace False
+
+Solving...
+
+Access: 9  MISS LRU ->          [9] <- MRU Replaced:- [Hits:0 Misses:1]
+Access: 9  HIT  LRU ->          [9] <- MRU Replaced:- [Hits:1 Misses:1]
+Access: 0  MISS LRU ->       [9, 0] <- MRU Replaced:- [Hits:1 Misses:2]
+Access: 0  HIT  LRU ->       [9, 0] <- MRU Replaced:- [Hits:2 Misses:2]
+Access: 8  MISS LRU ->    [9, 0, 8] <- MRU Replaced:- [Hits:2 Misses:3]
+Access: 7  MISS LRU ->    [0, 8, 7] <- MRU Replaced:9 [Hits:2 Misses:4]
+Access: 6  MISS LRU ->    [8, 7, 6] <- MRU Replaced:0 [Hits:2 Misses:5]
+Access: 3  MISS LRU ->    [7, 6, 3] <- MRU Replaced:8 [Hits:2 Misses:6]
+Access: 6  HIT  LRU ->    [7, 3, 6] <- MRU Replaced:- [Hits:3 Misses:6]
+Access: 6  HIT  LRU ->    [7, 3, 6] <- MRU Replaced:- [Hits:4 Misses:6]
+
+FINALSTATS hits 4   misses 6   hitrate 40.00
+
+$ python paging-policy.py -s 2 -n 10 -p OPT
+ARG addresses -1
+ARG addressfile
+ARG numaddrs 10
+ARG policy OPT
+ARG clockbits 2
+ARG cachesize 3
+ARG maxpage 10
+ARG seed 2
+ARG notrace False
+
+Solving...
+
+Access: 9  MISS Left  ->          [9] <- Right Replaced:- [Hits:0 Misses:1]
+Access: 9  HIT  Left  ->          [9] <- Right Replaced:- [Hits:1 Misses:1]
+Access: 0  MISS Left  ->       [9, 0] <- Right Replaced:- [Hits:1 Misses:2]
+Access: 0  HIT  Left  ->       [9, 0] <- Right Replaced:- [Hits:2 Misses:2]
+Access: 8  MISS Left  ->    [9, 0, 8] <- Right Replaced:- [Hits:2 Misses:3]
+Access: 7  MISS Left  ->    [9, 0, 7] <- Right Replaced:8 [Hits:2 Misses:4]
+Access: 6  MISS Left  ->    [9, 0, 6] <- Right Replaced:7 [Hits:2 Misses:5]
+Access: 3  MISS Left  ->    [9, 6, 3] <- Right Replaced:0 [Hits:2 Misses:6]
+Access: 6  HIT  Left  ->    [9, 6, 3] <- Right Replaced:- [Hits:3 Misses:6]
+Access: 6  HIT  Left  ->    [9, 6, 3] <- Right Replaced:- [Hits:4 Misses:6]
+
+FINALSTATS hits 4   misses 6   hitrate 40.00
+```
+
 ---
+
+**Q2**: For a cache of size 5, generate worst-case address reference streams for each of the following policies: FIFO, LRU, and MRU (worst-case reference streams cause the most misses possible. For the worst case reference streams, how much bigger of a cache is needed to improve performance dramatically and approach OPT?
+
+**A**: For a cache of size as the same as referenced memory pages, it can improve performance to approach OPT.
+
+```zsh
+$ python paging-paging.py -C 5 -p FIFO -a 1,2,3,4,5,6,1,2,3,4
+ARG addresses 1,2,3,4,5,6,1,2,3,4
+ARG addressfile
+ARG numaddrs 10
+ARG policy FIFO
+ARG clockbits 2
+ARG cachesize 5
+ARG maxpage 10
+ARG seed 0
+ARG notrace False
+
+Solving...
+
+Access: 1  MISS FirstIn ->          [1] <- Lastin  Replaced:- [Hits:0 Misses:1]
+Access: 2  MISS FirstIn ->       [1, 2] <- Lastin  Replaced:- [Hits:0 Misses:2]
+Access: 3  MISS FirstIn ->    [1, 2, 3] <- Lastin  Replaced:- [Hits:0 Misses:3]
+Access: 4  MISS FirstIn -> [1, 2, 3, 4] <- Lastin  Replaced:- [Hits:0 Misses:4]
+Access: 5  MISS FirstIn -> [1, 2, 3, 4, 5] <- Lastin  Replaced:- [Hits:0 Misses:5]
+Access: 6  MISS FirstIn -> [2, 3, 4, 5, 6] <- Lastin  Replaced:1 [Hits:0 Misses:6]
+Access: 1  MISS FirstIn -> [3, 4, 5, 6, 1] <- Lastin  Replaced:2 [Hits:0 Misses:7]
+Access: 2  MISS FirstIn -> [4, 5, 6, 1, 2] <- Lastin  Replaced:3 [Hits:0 Misses:8]
+Access: 3  MISS FirstIn -> [5, 6, 1, 2, 3] <- Lastin  Replaced:4 [Hits:0 Misses:9]
+Access: 4  MISS FirstIn -> [6, 1, 2, 3, 4] <- Lastin  Replaced:5 [Hits:0 Misses:10]
+
+FINALSTATS hits 0   misses 10   hitrate 0.00
+```
+
+```zsh
+$ python paging-policy.py -C 5 -p LRU -a 1,2,3,4,5,6,1,2,3,4
+ARG addresses 1,2,3,4,5,6,1,2,3,4
+ARG addressfile
+ARG numaddrs 10
+ARG policy LRU
+ARG clockbits 2
+ARG cachesize 5
+ARG maxpage 10
+ARG seed 0
+ARG notrace False
+
+Solving...
+
+Access: 1  MISS LRU ->          [1] <- MRU Replaced:- [Hits:0 Misses:1]
+Access: 2  MISS LRU ->       [1, 2] <- MRU Replaced:- [Hits:0 Misses:2]
+Access: 3  MISS LRU ->    [1, 2, 3] <- MRU Replaced:- [Hits:0 Misses:3]
+Access: 4  MISS LRU -> [1, 2, 3, 4] <- MRU Replaced:- [Hits:0 Misses:4]
+Access: 5  MISS LRU -> [1, 2, 3, 4, 5] <- MRU Replaced:- [Hits:0 Misses:5]
+Access: 6  MISS LRU -> [2, 3, 4, 5, 6] <- MRU Replaced:1 [Hits:0 Misses:6]
+Access: 1  MISS LRU -> [3, 4, 5, 6, 1] <- MRU Replaced:2 [Hits:0 Misses:7]
+Access: 2  MISS LRU -> [4, 5, 6, 1, 2] <- MRU Replaced:3 [Hits:0 Misses:8]
+Access: 3  MISS LRU -> [5, 6, 1, 2, 3] <- MRU Replaced:4 [Hits:0 Misses:9]
+Access: 4  MISS LRU -> [6, 1, 2, 3, 4] <- MRU Replaced:5 [Hits:0 Misses:10]
+
+FINALSTATS hits 0   misses 10   hitrate 0.00
+```
+
+```zsh
+$ python paging-policy.py -C 5 -p MRU -a 1,2,3,4,5,6,5,6,5,6
+ARG addresses 1,2,3,4,5,6,5,6,5,6
+ARG addressfile
+ARG numaddrs 10
+ARG policy MRU
+ARG clockbits 2
+ARG cachesize 5
+ARG maxpage 10
+ARG seed 0
+ARG notrace False
+
+Solving...
+
+Access: 1  MISS LRU ->          [1] <- MRU Replaced:- [Hits:0 Misses:1]
+Access: 2  MISS LRU ->       [1, 2] <- MRU Replaced:- [Hits:0 Misses:2]
+Access: 3  MISS LRU ->    [1, 2, 3] <- MRU Replaced:- [Hits:0 Misses:3]
+Access: 4  MISS LRU -> [1, 2, 3, 4] <- MRU Replaced:- [Hits:0 Misses:4]
+Access: 5  MISS LRU -> [1, 2, 3, 4, 5] <- MRU Replaced:- [Hits:0 Misses:5]
+Access: 6  MISS LRU -> [1, 2, 3, 4, 6] <- MRU Replaced:5 [Hits:0 Misses:6]
+Access: 5  MISS LRU -> [1, 2, 3, 4, 5] <- MRU Replaced:6 [Hits:0 Misses:7]
+Access: 6  MISS LRU -> [1, 2, 3, 4, 6] <- MRU Replaced:5 [Hits:0 Misses:8]
+Access: 5  MISS LRU -> [1, 2, 3, 4, 5] <- MRU Replaced:6 [Hits:0 Misses:9]
+Access: 6  MISS LRU -> [1, 2, 3, 4, 6] <- MRU Replaced:5 [Hits:0 Misses:10]
+
+FINALSTATS hits 0   misses 10   hitrate 0.00
+```
+
+---
+
+**Q3**: Generate a random trace (use python or perl). How would you expect the different policies to perform on such a trace?
+
+**A**:
+
+```zsh
+$ python paging-policy.py -C 5 -p FIFO -a 1,3,3,2,4,6,4,2,5,1,2
+ARG addresses 1,3,3,2,4,6,4,2,5,1,2
+ARG addressfile
+ARG numaddrs 10
+ARG policy FIFO
+ARG clockbits 2
+ARG cachesize 5
+ARG maxpage 10
+ARG seed 0
+ARG notrace False
+
+Solving...
+
+Access: 1  MISS FirstIn ->          [1] <- Lastin  Replaced:- [Hits:0 Misses:1]
+Access: 3  MISS FirstIn ->       [1, 3] <- Lastin  Replaced:- [Hits:0 Misses:2]
+Access: 3  HIT  FirstIn ->       [1, 3] <- Lastin  Replaced:- [Hits:1 Misses:2]
+Access: 2  MISS FirstIn ->    [1, 3, 2] <- Lastin  Replaced:- [Hits:1 Misses:3]
+Access: 4  MISS FirstIn -> [1, 3, 2, 4] <- Lastin  Replaced:- [Hits:1 Misses:4]
+Access: 6  MISS FirstIn -> [1, 3, 2, 4, 6] <- Lastin  Replaced:- [Hits:1 Misses:5]
+Access: 4  HIT  FirstIn -> [1, 3, 2, 4, 6] <- Lastin  Replaced:- [Hits:2 Misses:5]
+Access: 2  HIT  FirstIn -> [1, 3, 2, 4, 6] <- Lastin  Replaced:- [Hits:3 Misses:5]
+Access: 5  MISS FirstIn -> [3, 2, 4, 6, 5] <- Lastin  Replaced:1 [Hits:3 Misses:6]
+Access: 1  MISS FirstIn -> [2, 4, 6, 5, 1] <- Lastin  Replaced:3 [Hits:3 Misses:7]
+Access: 2  HIT  FirstIn -> [2, 4, 6, 5, 1] <- Lastin  Replaced:- [Hits:4 Misses:7]
+
+FINALSTATS hits 4   misses 7   hitrate 36.36
+```
+
+```zsh
+$ python paging-policy.py -C 5 -p LRU -a 1,3,3,2,4,6,4,2,5,1,2
+ARG addresses 1,3,3,2,4,6,4,2,5,1,2
+ARG addressfile
+ARG numaddrs 10
+ARG policy LRU
+ARG clockbits 2
+ARG cachesize 5
+ARG maxpage 10
+ARG seed 0
+ARG notrace False
+
+Solving...
+
+Access: 1  MISS LRU ->          [1] <- MRU Replaced:- [Hits:0 Misses:1]
+Access: 3  MISS LRU ->       [1, 3] <- MRU Replaced:- [Hits:0 Misses:2]
+Access: 3  HIT  LRU ->       [1, 3] <- MRU Replaced:- [Hits:1 Misses:2]
+Access: 2  MISS LRU ->    [1, 3, 2] <- MRU Replaced:- [Hits:1 Misses:3]
+Access: 4  MISS LRU -> [1, 3, 2, 4] <- MRU Replaced:- [Hits:1 Misses:4]
+Access: 6  MISS LRU -> [1, 3, 2, 4, 6] <- MRU Replaced:- [Hits:1 Misses:5]
+Access: 4  HIT  LRU -> [1, 3, 2, 6, 4] <- MRU Replaced:- [Hits:2 Misses:5]
+Access: 2  HIT  LRU -> [1, 3, 6, 4, 2] <- MRU Replaced:- [Hits:3 Misses:5]
+Access: 5  MISS LRU -> [3, 6, 4, 2, 5] <- MRU Replaced:1 [Hits:3 Misses:6]
+Access: 1  MISS LRU -> [6, 4, 2, 5, 1] <- MRU Replaced:3 [Hits:3 Misses:7]
+Access: 2  HIT  LRU -> [6, 4, 5, 1, 2] <- MRU Replaced:- [Hits:4 Misses:7]
+
+FINALSTATS hits 4   misses 7   hitrate 36.36
+```
+
+```zsh
+$ python paging-policy.py -C 5 -p MRU -a 1,3,3,2,4,6,4,2,5,1,2
+ARG addresses 1,3,3,2,4,6,4,2,5,1,2
+ARG addressfile
+ARG numaddrs 10
+ARG policy MRU
+ARG clockbits 2
+ARG cachesize 5
+ARG maxpage 10
+ARG seed 0
+ARG notrace False
+
+Solving...
+
+Access: 1  MISS LRU ->          [1] <- MRU Replaced:- [Hits:0 Misses:1]
+Access: 3  MISS LRU ->       [1, 3] <- MRU Replaced:- [Hits:0 Misses:2]
+Access: 3  HIT  LRU ->       [1, 3] <- MRU Replaced:- [Hits:1 Misses:2]
+Access: 2  MISS LRU ->    [1, 3, 2] <- MRU Replaced:- [Hits:1 Misses:3]
+Access: 4  MISS LRU -> [1, 3, 2, 4] <- MRU Replaced:- [Hits:1 Misses:4]
+Access: 6  MISS LRU -> [1, 3, 2, 4, 6] <- MRU Replaced:- [Hits:1 Misses:5]
+Access: 4  HIT  LRU -> [1, 3, 2, 6, 4] <- MRU Replaced:- [Hits:2 Misses:5]
+Access: 2  HIT  LRU -> [1, 3, 6, 4, 2] <- MRU Replaced:- [Hits:3 Misses:5]
+Access: 5  MISS LRU -> [1, 3, 6, 4, 5] <- MRU Replaced:2 [Hits:3 Misses:6]
+Access: 1  HIT  LRU -> [3, 6, 4, 5, 1] <- MRU Replaced:- [Hits:4 Misses:6]
+Access: 2  MISS LRU -> [3, 6, 4, 5, 2] <- MRU Replaced:1 [Hits:4 Misses:7]
+
+FINALSTATS hits 4   misses 7   hitrate 36.36
+```
+
+---
+
+**Q4**: Now generate a trace with some locality. How can you generate such a trace? How does LRU perform on it? How much better than RAND is LRU? How does CLOCK do? How about CLOCK with different numbers of clock bits?
+
+**A**:
+
+```zsh
+$ python paging-policy.py -C 5 -p RAND -a 1,3,3,2,4,6,4,2,5,1,2
+ARG addresses 1,3,3,2,4,6,4,2,5,1,2
+ARG addressfile
+ARG numaddrs 10
+ARG policy RAND
+ARG clockbits 2
+ARG cachesize 5
+ARG maxpage 10
+ARG seed 0
+ARG notrace False
+
+Solving...
+
+Access: 1  MISS Left  ->          [1] <- Right Replaced:- [Hits:0 Misses:1]
+Access: 3  MISS Left  ->       [1, 3] <- Right Replaced:- [Hits:0 Misses:2]
+Access: 3  HIT  Left  ->       [1, 3] <- Right Replaced:- [Hits:1 Misses:2]
+Access: 2  MISS Left  ->    [1, 3, 2] <- Right Replaced:- [Hits:1 Misses:3]
+Access: 4  MISS Left  -> [1, 3, 2, 4] <- Right Replaced:- [Hits:1 Misses:4]
+Access: 6  MISS Left  -> [1, 3, 2, 4, 6] <- Right Replaced:- [Hits:1 Misses:5]
+Access: 4  HIT  Left  -> [1, 3, 2, 4, 6] <- Right Replaced:- [Hits:2 Misses:5]
+Access: 2  HIT  Left  -> [1, 3, 2, 4, 6] <- Right Replaced:- [Hits:3 Misses:5]
+Access: 5  MISS Left  -> [1, 3, 2, 4, 5] <- Right Replaced:6 [Hits:3 Misses:6]
+Access: 1  HIT  Left  -> [1, 3, 2, 4, 5] <- Right Replaced:- [Hits:4 Misses:6]
+Access: 2  HIT  Left  -> [1, 3, 2, 4, 5] <- Right Replaced:- [Hits:5 Misses:6]
+
+FINALSTATS hits 5   misses 6   hitrate 45.45
+```
+
+```zsh
+$ python paging-policy.py -C 5 -p LRU -a 1,3,3,2,4,6,4,2,5,1,2
+ARG addresses 1,3,3,2,4,6,4,2,5,1,2
+ARG addressfile
+ARG numaddrs 10
+ARG policy LRU
+ARG clockbits 2
+ARG cachesize 5
+ARG maxpage 10
+ARG seed 0
+ARG notrace False
+
+Solving...
+
+Access: 1  MISS LRU ->          [1] <- MRU Replaced:- [Hits:0 Misses:1]
+Access: 3  MISS LRU ->       [1, 3] <- MRU Replaced:- [Hits:0 Misses:2]
+Access: 3  HIT  LRU ->       [1, 3] <- MRU Replaced:- [Hits:1 Misses:2]
+Access: 2  MISS LRU ->    [1, 3, 2] <- MRU Replaced:- [Hits:1 Misses:3]
+Access: 4  MISS LRU -> [1, 3, 2, 4] <- MRU Replaced:- [Hits:1 Misses:4]
+Access: 6  MISS LRU -> [1, 3, 2, 4, 6] <- MRU Replaced:- [Hits:1 Misses:5]
+Access: 4  HIT  LRU -> [1, 3, 2, 6, 4] <- MRU Replaced:- [Hits:2 Misses:5]
+Access: 2  HIT  LRU -> [1, 3, 6, 4, 2] <- MRU Replaced:- [Hits:3 Misses:5]
+Access: 5  MISS LRU -> [3, 6, 4, 2, 5] <- MRU Replaced:1 [Hits:3 Misses:6]
+Access: 1  MISS LRU -> [6, 4, 2, 5, 1] <- MRU Replaced:3 [Hits:3 Misses:7]
+Access: 2  HIT  LRU -> [6, 4, 5, 1, 2] <- MRU Replaced:- [Hits:4 Misses:7]
+
+FINALSTATS hits 4   misses 7   hitrate 36.36
+```
+
+```zsh
+$ python paging-policy.py -C 5 -p CLOCK -a 1,3,3,2,4,6,4,2,5,1,2
+ARG addresses 1,3,3,2,4,6,4,2,5,1,2
+ARG addressfile
+ARG numaddrs 10
+ARG policy CLOCK
+ARG clockbits 2
+ARG cachesize 5
+ARG maxpage 10
+ARG seed 0
+ARG notrace False
+
+Solving...
+
+Access: 1  MISS Left  ->          [1] <- Right Replaced:- [Hits:0 Misses:1]
+Access: 3  MISS Left  ->       [1, 3] <- Right Replaced:- [Hits:0 Misses:2]
+Access: 3  HIT  Left  ->       [1, 3] <- Right Replaced:- [Hits:1 Misses:2]
+Access: 2  MISS Left  ->    [1, 3, 2] <- Right Replaced:- [Hits:1 Misses:3]
+Access: 4  MISS Left  -> [1, 3, 2, 4] <- Right Replaced:- [Hits:1 Misses:4]
+Access: 6  MISS Left  -> [1, 3, 2, 4, 6] <- Right Replaced:- [Hits:1 Misses:5]
+Access: 4  HIT  Left  -> [1, 3, 2, 4, 6] <- Right Replaced:- [Hits:2 Misses:5]
+Access: 2  HIT  Left  -> [1, 3, 2, 4, 6] <- Right Replaced:- [Hits:3 Misses:5]
+Access: 5  MISS Left  -> [1, 3, 4, 6, 5] <- Right Replaced:2 [Hits:3 Misses:6]
+Access: 1  HIT  Left  -> [1, 3, 4, 6, 5] <- Right Replaced:- [Hits:4 Misses:6]
+Access: 2  MISS Left  -> [1, 3, 4, 5, 2] <- Right Replaced:6 [Hits:4 Misses:7]
+
+FINALSTATS hits 4   misses 7   hitrate 36.36
+```
+
+```zsh
+$ python paging-policy.py -C 5 -p CLOCK -a 1,3,3,2,4,6,4,2,5,1,2 -b 10
+ARG addresses 1,3,3,2,4,6,4,2,5,1,2
+ARG addressfile
+ARG numaddrs 10
+ARG policy CLOCK
+ARG clockbits 10
+ARG cachesize 5
+ARG maxpage 10
+ARG seed 0
+ARG notrace False
+
+Solving...
+
+Access: 1  MISS Left  ->          [1] <- Right Replaced:- [Hits:0 Misses:1]
+Access: 3  MISS Left  ->       [1, 3] <- Right Replaced:- [Hits:0 Misses:2]
+Access: 3  HIT  Left  ->       [1, 3] <- Right Replaced:- [Hits:1 Misses:2]
+Access: 2  MISS Left  ->    [1, 3, 2] <- Right Replaced:- [Hits:1 Misses:3]
+Access: 4  MISS Left  -> [1, 3, 2, 4] <- Right Replaced:- [Hits:1 Misses:4]
+Access: 6  MISS Left  -> [1, 3, 2, 4, 6] <- Right Replaced:- [Hits:1 Misses:5]
+Access: 4  HIT  Left  -> [1, 3, 2, 4, 6] <- Right Replaced:- [Hits:2 Misses:5]
+Access: 2  HIT  Left  -> [1, 3, 2, 4, 6] <- Right Replaced:- [Hits:3 Misses:5]
+Access: 5  MISS Left  -> [1, 3, 4, 6, 5] <- Right Replaced:2 [Hits:3 Misses:6]
+Access: 1  HIT  Left  -> [1, 3, 4, 6, 5] <- Right Replaced:- [Hits:4 Misses:6]
+Access: 2  MISS Left  -> [1, 3, 4, 5, 2] <- Right Replaced:6 [Hits:4 Misses:7]
+
+FINALSTATS hits 4   misses 7   hitrate 36.36
+```

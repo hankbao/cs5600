@@ -756,19 +756,159 @@ ARG verbose False
 
 **Q1**: First build `main-race.c`. Examine the code so you can see the (hopefully obvious) data race in the code. Now run `helgrind` (by typing `valgrind --tool=helgrind main-race`) to see how it reports the race. Does it point to the right lines of code? What other information does it give to you?
 
-**A**:
+**A**: Yes, it does. It shows the possible data races in the code with addresses and line numbers.
+
+```zsh
+$ valgrind --tool=helgrind main-race
+==3365== Helgrind, a thread error detector
+==3365== Copyright (C) 2007-2017, and GNU GPL'd, by OpenWorks LLP et al.
+==3365== Using Valgrind-3.13.0 and LibVEX; rerun with -h for copyright info
+==3365== Command: ./main-race
+==3365==
+==3365== ---Thread-Announcement------------------------------------------
+==3365==
+==3365== Thread #1 is the program's root thread
+==3365==
+==3365== ---Thread-Announcement------------------------------------------
+==3365==
+==3365== Thread #2 was created
+==3365==    at 0x518460E: clone (clone.S:71)
+==3365==    by 0x4E4BEC4: create_thread (createthread.c:100)
+==3365==    by 0x4E4BEC4: pthread_create@@GLIBC_2.2.5 (pthread_create.c:797)
+==3365==    by 0x4C38A27: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==3365==    by 0x1087E2: main (main-race.c:14)
+==3365==
+==3365== ----------------------------------------------------------------
+==3365==
+==3365== Possible data race during read of size 4 at 0x309014 by thread #1
+==3365== Locks held: none
+==3365==    at 0x108806: main (main-race.c:15)
+==3365==
+==3365== This conflicts with a previous write of size 4 by thread #2
+==3365== Locks held: none
+==3365==    at 0x10879B: worker (main-race.c:8)
+==3365==    by 0x4C38C26: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==3365==    by 0x4E4B6DA: start_thread (pthread_create.c:463)
+==3365==    by 0x518461E: clone (clone.S:95)
+==3365==  Address 0x309014 is 0 bytes inside data symbol "balance"
+==3365==
+==3365== ----------------------------------------------------------------
+==3365==
+==3365== Possible data race during write of size 4 at 0x309014 by thread #1
+==3365== Locks held: none
+==3365==    at 0x10880F: main (main-race.c:15)
+==3365==
+==3365== This conflicts with a previous write of size 4 by thread #2
+==3365== Locks held: none
+==3365==    at 0x10879B: worker (main-race.c:8)
+==3365==    by 0x4C38C26: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==3365==    by 0x4E4B6DA: start_thread (pthread_create.c:463)
+==3365==    by 0x518461E: clone (clone.S:95)
+==3365==  Address 0x309014 is 0 bytes inside data symbol "balance"
+==3365==
+==3365==
+==3365== For counts of detected and suppressed errors, rerun with: -v
+==3365== Use --history-level=approx or =none to gain increased speed, at
+==3365== the cost of reduced accuracy of conflicting-access information
+==3365== ERROR SUMMARY: 2 errors from 2 contexts (suppressed: 0 from 0)
+```
 
 ---
 
 **Q2**: What happens when you remove one of the offending lines of code?  Now add a lock around one of the updates to the shared variable, and then around both. What does `helgrind` report in each of these cases?
 
-**A**:
+**A**: With one of the offending lines of code removed, `helgrind` reports no errors. With a lock around both, `helgrind` reports no errors. With a lock around one of the updates to the shared variable, `helgrind` reports errors as previous.
+
+```zsh
+$ valgrind --tool=helgrind ./main-race
+==5997== Helgrind, a thread error detector
+==5997== Copyright (C) 2007-2017, and GNU GPL'd, by OpenWorks LLP et al.
+==5997== Using Valgrind-3.13.0 and LibVEX; rerun with -h for copyright info
+==5997== Command: ./main-race
+==5997==
+==5997==
+==5997== For counts of detected and suppressed errors, rerun with: -v
+==5997== Use --history-level=approx or =none to gain increased speed, at
+==5997== the cost of reduced accuracy of conflicting-access information
+==5997== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+```
+
+```zsh
+$ valgrind --tool=helgrind ./main-race
+==6397== Helgrind, a thread error detector
+==6397== Copyright (C) 2007-2017, and GNU GPL'd, by OpenWorks LLP et al.
+==6397== Using Valgrind-3.13.0 and LibVEX; rerun with -h for copyright info
+==6397== Command: ./main-race
+==6397==
+==6397== ---Thread-Announcement------------------------------------------
+==6397==
+==6397== Thread #1 is the program's root thread
+==6397==
+==6397== ---Thread-Announcement------------------------------------------
+==6397==
+==6397== Thread #2 was created
+==6397==    at 0x518460E: clone (clone.S:71)
+==6397==    by 0x4E4BEC4: create_thread (createthread.c:100)
+==6397==    by 0x4E4BEC4: pthread_create@@GLIBC_2.2.5 (pthread_create.c:797)
+==6397==    by 0x4C38A27: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==6397==    by 0x1088AE: main (main-race.c:17)
+==6397==
+==6397== ----------------------------------------------------------------
+==6397==
+==6397==  Lock at 0x309060 was first observed
+==6397==    at 0x4C3603C: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==6397==    by 0x108851: worker (main-race.c:9)
+==6397==    by 0x4C38C26: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==6397==    by 0x4E4B6DA: start_thread (pthread_create.c:463)
+==6397==    by 0x518461E: clone (clone.S:95)
+==6397==  Address 0x309060 is 0 bytes inside data symbol "mutex"
+==6397==
+==6397== Possible data race during read of size 4 at 0x309040 by thread #1
+==6397== Locks held: none
+==6397==    at 0x1088D2: main (main-race.c:18)
+==6397==
+==6397== This conflicts with a previous write of size 4 by thread #2
+==6397== Locks held: 1, at address 0x309060
+==6397==    at 0x10885B: worker (main-race.c:10)
+==6397==    by 0x4C38C26: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==6397==    by 0x4E4B6DA: start_thread (pthread_create.c:463)
+==6397==    by 0x518461E: clone (clone.S:95)
+==6397==  Address 0x309040 is 0 bytes inside data symbol "balance"
+==6397==
+==6397== ----------------------------------------------------------------
+==6397==
+==6397==  Lock at 0x309060 was first observed
+==6397==    at 0x4C3603C: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==6397==    by 0x108851: worker (main-race.c:9)
+==6397==    by 0x4C38C26: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==6397==    by 0x4E4B6DA: start_thread (pthread_create.c:463)
+==6397==    by 0x518461E: clone (clone.S:95)
+==6397==  Address 0x309060 is 0 bytes inside data symbol "mutex"
+==6397==
+==6397== Possible data race during write of size 4 at 0x309040 by thread #1
+==6397== Locks held: none
+==6397==    at 0x1088DB: main (main-race.c:18)
+==6397==
+==6397== This conflicts with a previous write of size 4 by thread #2
+==6397== Locks held: 1, at address 0x309060
+==6397==    at 0x10885B: worker (main-race.c:10)
+==6397==    by 0x4C38C26: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==6397==    by 0x4E4B6DA: start_thread (pthread_create.c:463)
+==6397==    by 0x518461E: clone (clone.S:95)
+==6397==  Address 0x309040 is 0 bytes inside data symbol "balance"
+==6397==
+==6397==
+==6397== For counts of detected and suppressed errors, rerun with: -v
+==6397== Use --history-level=approx or =none to gain increased speed, at
+==6397== the cost of reduced accuracy of conflicting-access information
+==6397== ERROR SUMMARY: 2 errors from 2 contexts (suppressed: 0 from 0)
+```
 
 ---
 
 **Q3**: Now let’s look at `main-deadlock.c`. Examine the code. This code has a problem known as **deadlock** (which we discuss in much more depth in a forthcoming chapter). Can you see what problem it might have?
 
-**A**:
+**A**: Thread `p1` is trying to acquire `m1` and then `m2`, but thread `p2` is trying to acquire `m2` and then `m1`. This will cause a deadlock.
 
 ---
 
@@ -776,35 +916,273 @@ ARG verbose False
 
 **A**:
 
+```zsh
+$ valgrind --tool=helgrind ./main-deadlock
+==18662== Helgrind, a thread error detector
+==18662== Copyright (C) 2007-2017, and GNU GPL'd, by OpenWorks LLP et al.
+==18662== Using Valgrind-3.13.0 and LibVEX; rerun with -h for copyright info
+==18662== Command: ./main-deadlock
+==18662==
+==18662== ---Thread-Announcement------------------------------------------
+==18662==
+==18662== Thread #3 was created
+==18662==    at 0x518460E: clone (clone.S:71)
+==18662==    by 0x4E4BEC4: create_thread (createthread.c:100)
+==18662==    by 0x4E4BEC4: pthread_create@@GLIBC_2.2.5 (pthread_create.c:797)
+==18662==    by 0x4C38A27: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==18662==    by 0x1089E8: main (main-deadlock.c:24)
+==18662==
+==18662== ----------------------------------------------------------------
+==18662==
+==18662== Thread #3: lock order "0x30A040 before 0x30A080" violated
+==18662==
+==18662== Observed (incorrect) order is: acquisition of lock at 0x30A080
+==18662==    at 0x4C3603C: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==18662==    by 0x1088B6: worker (main-deadlock.c:13)
+==18662==    by 0x4C38C26: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==18662==    by 0x4E4B6DA: start_thread (pthread_create.c:463)
+==18662==    by 0x518461E: clone (clone.S:95)
+==18662==
+==18662==  followed by a later acquisition of lock at 0x30A040
+==18662==    at 0x4C3603C: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==18662==    by 0x1088E5: worker (main-deadlock.c:14)
+==18662==    by 0x4C38C26: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==18662==    by 0x4E4B6DA: start_thread (pthread_create.c:463)
+==18662==    by 0x518461E: clone (clone.S:95)
+==18662==
+==18662== Required order was established by acquisition of lock at 0x30A040
+==18662==    at 0x4C3603C: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==18662==    by 0x108858: worker (main-deadlock.c:10)
+==18662==    by 0x4C38C26: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==18662==    by 0x4E4B6DA: start_thread (pthread_create.c:463)
+==18662==    by 0x518461E: clone (clone.S:95)
+==18662==
+==18662==  followed by a later acquisition of lock at 0x30A080
+==18662==    at 0x4C3603C: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==18662==    by 0x108887: worker (main-deadlock.c:11)
+==18662==    by 0x4C38C26: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==18662==    by 0x4E4B6DA: start_thread (pthread_create.c:463)
+==18662==    by 0x518461E: clone (clone.S:95)
+==18662==
+==18662==  Lock at 0x30A040 was first observed
+==18662==    at 0x4C3603C: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==18662==    by 0x108858: worker (main-deadlock.c:10)
+==18662==    by 0x4C38C26: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==18662==    by 0x4E4B6DA: start_thread (pthread_create.c:463)
+==18662==    by 0x518461E: clone (clone.S:95)
+==18662==  Address 0x30a040 is 0 bytes inside data symbol "m1"
+==18662==
+==18662==  Lock at 0x30A080 was first observed
+==18662==    at 0x4C3603C: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==18662==    by 0x108887: worker (main-deadlock.c:11)
+==18662==    by 0x4C38C26: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==18662==    by 0x4E4B6DA: start_thread (pthread_create.c:463)
+==18662==    by 0x518461E: clone (clone.S:95)
+==18662==  Address 0x30a080 is 0 bytes inside data symbol "m2"
+==18662==
+==18662==
+==18662==
+==18662== For counts of detected and suppressed errors, rerun with: -v
+==18662== Use --history-level=approx or =none to gain increased speed, at
+==18662== the cost of reduced accuracy of conflicting-access information
+==18662== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 7 from 7)
+```
+
 ---
 
 **Q5**: Now run `helgrind` on `main-deadlock-global.c`. Examine the code; does it have the same problem that `main-deadlock.c` has? Should `helgrind` be reporting the same error? What does this tell you about tools like `helgrind`?
 
-**A**:
+**A**: Tools like `helgrind` could produced false reports of errors, be it false positive or false negative.
+
+```zsh
+$ valgrind --tool=helgrind ./main-deadlock-global
+==19985== Helgrind, a thread error detector
+==19985== Copyright (C) 2007-2017, and GNU GPL'd, by OpenWorks LLP et al.
+==19985== Using Valgrind-3.13.0 and LibVEX; rerun with -h for copyright info
+==19985== Command: ./main-deadlock-global
+==19985==
+==19985== ---Thread-Announcement------------------------------------------
+==19985==
+==19985== Thread #3 was created
+==19985==    at 0x518460E: clone (clone.S:71)
+==19985==    by 0x4E4BEC4: create_thread (createthread.c:100)
+==19985==    by 0x4E4BEC4: pthread_create@@GLIBC_2.2.5 (pthread_create.c:797)
+==19985==    by 0x4C38A27: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==19985==    by 0x108A46: main (main-deadlock-global.c:27)
+==19985==
+==19985== ----------------------------------------------------------------
+==19985==
+==19985== Thread #3: lock order "0x30A080 before 0x30A0C0" violated
+==19985==
+==19985== Observed (incorrect) order is: acquisition of lock at 0x30A0C0
+==19985==    at 0x4C3603C: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==19985==    by 0x1088E5: worker (main-deadlock-global.c:15)
+==19985==    by 0x4C38C26: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==19985==    by 0x4E4B6DA: start_thread (pthread_create.c:463)
+==19985==    by 0x518461E: clone (clone.S:95)
+==19985==
+==19985==  followed by a later acquisition of lock at 0x30A080
+==19985==    at 0x4C3603C: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==19985==    by 0x108914: worker (main-deadlock-global.c:16)
+==19985==    by 0x4C38C26: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==19985==    by 0x4E4B6DA: start_thread (pthread_create.c:463)
+==19985==    by 0x518461E: clone (clone.S:95)
+==19985==
+==19985== Required order was established by acquisition of lock at 0x30A080
+==19985==    at 0x4C3603C: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==19985==    by 0x108887: worker (main-deadlock-global.c:12)
+==19985==    by 0x4C38C26: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==19985==    by 0x4E4B6DA: start_thread (pthread_create.c:463)
+==19985==    by 0x518461E: clone (clone.S:95)
+==19985==
+==19985==  followed by a later acquisition of lock at 0x30A0C0
+==19985==    at 0x4C3603C: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==19985==    by 0x1088B6: worker (main-deadlock-global.c:13)
+==19985==    by 0x4C38C26: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==19985==    by 0x4E4B6DA: start_thread (pthread_create.c:463)
+==19985==    by 0x518461E: clone (clone.S:95)
+==19985==
+==19985==  Lock at 0x30A080 was first observed
+==19985==    at 0x4C3603C: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==19985==    by 0x108887: worker (main-deadlock-global.c:12)
+==19985==    by 0x4C38C26: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==19985==    by 0x4E4B6DA: start_thread (pthread_create.c:463)
+==19985==    by 0x518461E: clone (clone.S:95)
+==19985==  Address 0x30a080 is 0 bytes inside data symbol "m1"
+==19985==
+==19985==  Lock at 0x30A0C0 was first observed
+==19985==    at 0x4C3603C: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==19985==    by 0x1088B6: worker (main-deadlock-global.c:13)
+==19985==    by 0x4C38C26: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==19985==    by 0x4E4B6DA: start_thread (pthread_create.c:463)
+==19985==    by 0x518461E: clone (clone.S:95)
+==19985==  Address 0x30a0c0 is 0 bytes inside data symbol "m2"
+==19985==
+==19985==
+==19985==
+==19985== For counts of detected and suppressed errors, rerun with: -v
+==19985== Use --history-level=approx or =none to gain increased speed, at
+==19985== the cost of reduced accuracy of conflicting-access information
+==19985== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 7 from 7)
+```
 
 ---
 
 **Q6**: Let’s next look at `main-signal.c`. This code uses a variable (`done`) to signal that the child is done and that the parent can now continue.  Why is this code inefficient? (what does the parent end up spending its time doing, particularly if the child thread takes a long time to complete?)
 
-**A**:
+**A**: The parent thread is waiting with a spin loop that wasting CPU cycles.
 
 ---
 
 **Q7**: Now run `helgrind` on this program. What does it report? Is the code correct?
 
-**A**:
+**A**: It reports a data race between reading from the global variable on the main thread and writing to the global variable on the child thread. It also reports a data race between printf calls on both threads.
+
+```zsh
+$ valgrind --tool=helgrind ./main-signal
+==23174== Helgrind, a thread error detector
+==23174== Copyright (C) 2007-2017, and GNU GPL'd, by OpenWorks LLP et al.
+==23174== Using Valgrind-3.13.0 and LibVEX; rerun with -h for copyright info
+==23174== Command: ./main-signal
+==23174==
+this should print first
+==23174== ---Thread-Announcement------------------------------------------
+==23174==
+==23174== Thread #2 was created
+==23174==    at 0x518460E: clone (clone.S:71)
+==23174==    by 0x4E4BEC4: create_thread (createthread.c:100)
+==23174==    by 0x4E4BEC4: pthread_create@@GLIBC_2.2.5 (pthread_create.c:797)
+==23174==    by 0x4C38A27: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==23174==    by 0x1087DD: main (main-signal.c:15)
+==23174==
+==23174== ---Thread-Announcement------------------------------------------
+==23174==
+==23174== Thread #1 is the program's root thread
+==23174==
+==23174== ----------------------------------------------------------------
+==23174==
+==23174== Possible data race during write of size 4 at 0x309014 by thread #2
+==23174== Locks held: none
+==23174==    at 0x108792: worker (main-signal.c:9)
+==23174==    by 0x4C38C26: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==23174==    by 0x4E4B6DA: start_thread (pthread_create.c:463)
+==23174==    by 0x518461E: clone (clone.S:95)
+==23174==
+==23174== This conflicts with a previous read of size 4 by thread #1
+==23174== Locks held: none
+==23174==    at 0x108802: main (main-signal.c:16)
+==23174==  Address 0x309014 is 0 bytes inside data symbol "done"
+==23174==
+==23174== ----------------------------------------------------------------
+==23174==
+==23174== Possible data race during read of size 4 at 0x309014 by thread #1
+==23174== Locks held: none
+==23174==    at 0x108802: main (main-signal.c:16)
+==23174==
+==23174== This conflicts with a previous write of size 4 by thread #2
+==23174== Locks held: none
+==23174==    at 0x108792: worker (main-signal.c:9)
+==23174==    by 0x4C38C26: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==23174==    by 0x4E4B6DA: start_thread (pthread_create.c:463)
+==23174==    by 0x518461E: clone (clone.S:95)
+==23174==  Address 0x309014 is 0 bytes inside data symbol "done"
+==23174==
+==23174== ----------------------------------------------------------------
+==23174==
+==23174== Possible data race during write of size 1 at 0x5C551A5 by thread #1
+==23174== Locks held: none
+==23174==    at 0x4C3E546: mempcpy (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==23174==    by 0x50EE933: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1258)
+==23174==    by 0x50E3A3E: puts (ioputs.c:40)
+==23174==    by 0x108817: main (main-signal.c:18)
+==23174==  Address 0x5c551a5 is 21 bytes inside a block of size 1,024 alloc'd
+==23174==    at 0x4C32F2F: malloc (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==23174==    by 0x50E113B: _IO_file_doallocate (filedoalloc.c:101)
+==23174==    by 0x50F1328: _IO_doallocbuf (genops.c:365)
+==23174==    by 0x50F0447: _IO_file_overflow@@GLIBC_2.2.5 (fileops.c:759)
+==23174==    by 0x50EE98C: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1266)
+==23174==    by 0x50E3A3E: puts (ioputs.c:40)
+==23174==    by 0x108791: worker (main-signal.c:8)
+==23174==    by 0x4C38C26: ??? (in /usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so)
+==23174==    by 0x4E4B6DA: start_thread (pthread_create.c:463)
+==23174==    by 0x518461E: clone (clone.S:95)
+==23174==  Block was alloc'd by thread #2
+==23174==
+this should print last
+==23174==
+==23174== For counts of detected and suppressed errors, rerun with: -v
+==23174== Use --history-level=approx or =none to gain increased speed, at
+==23174== the cost of reduced accuracy of conflicting-access information
+==23174== ERROR SUMMARY: 24 errors from 3 contexts (suppressed: 49 from 49)
+```
 
 ---
 
 **Q8**: Now look at a slightly modified version of the code, which is found in `main-signal-cv.c`. This version uses a condition variable to do the signaling (and associated lock). Why is this code preferred to the previous version? Is it correctness, or performance, or both?
 
-**A**:
+**A**: The condition variable with a mutex used by the code doesn't have the busy waiting problem. So it is correct with better performance.
 
 ---
 
 **Q9**: Once again run `helgrind` on `main-signal-cv`. Does it report any errors?
 
-**A**:
+**A**: No, it detects 0 errors.
+
+```zsh
+$ valgrind --tool=helgrind ./main-signal-cv
+==24982== Helgrind, a thread error detector
+==24982== Copyright (C) 2007-2017, and GNU GPL'd, by OpenWorks LLP et al.
+==24982== Using Valgrind-3.13.0 and LibVEX; rerun with -h for copyright info
+==24982== Command: ./main-signal-cv
+==24982==
+this should print first
+this should print last
+==24982==
+==24982== For counts of detected and suppressed errors, rerun with: -v
+==24982== Use --history-level=approx or =none to gain increased speed, at
+==24982== the cost of reduced accuracy of conflicting-access information
+==24982== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 13 from 13)
+```
 
 ## Part 3: Chapter 28 Simulation
 

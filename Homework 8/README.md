@@ -1188,7 +1188,7 @@ this should print last
 
 **Q1**: Examine `flag.s`. This code “implements” locking with a single memory flag. Can you understand the assembly?
 
-**A**:
+**A**: Yes, it uses the variable flag as a spin lock.
 
 ---
 
@@ -1196,41 +1196,680 @@ this should print last
 
 **A**:
 
+```zsh
+$ python3 x86.py -p flag.s -M flag,count -R ax,bx
+ARG seed 0
+ARG numthreads 2
+ARG program flag.s
+ARG interrupt frequency 50
+ARG interrupt randomness False
+ARG procsched
+ARG argv
+ARG load address 1000
+ARG memsize 128
+ARG memtrace flag
+ARG regtrace ax
+ARG cctrace False
+ARG printstats False
+ARG verbose False
+
+
+ flag count      ax    bx          Thread 0                Thread 1
+
+    0     0       0     0
+    0     0       0     0   1000 mov  flag, %ax
+    0     0       0     0   1001 test $0, %ax
+    0     0       0     0   1002 jne  .acquire
+    1     0       0     0   1003 mov  $1, flag
+    1     0       0     0   1004 mov  count, %ax
+    1     0       1     0   1005 add  $1, %ax
+    1     1       1     0   1006 mov  %ax, count
+    0     1       1     0   1007 mov  $0, flag
+    0     1       1    -1   1008 sub  $1, %bx
+    0     1       1    -1   1009 test $0, %bx
+    0     1       1    -1   1010 jgt .top
+    0     1       1    -1   1011 halt
+    0     1       0     0   ----- Halt;Switch -----  ----- Halt;Switch -----
+    0     1       0     0                            1000 mov  flag, %ax
+    0     1       0     0                            1001 test $0, %ax
+    0     1       0     0                            1002 jne  .acquire
+    1     1       0     0                            1003 mov  $1, flag
+    1     1       1     0                            1004 mov  count, %ax
+    1     1       2     0                            1005 add  $1, %ax
+    1     2       2     0                            1006 mov  %ax, count
+    0     2       2     0                            1007 mov  $0, flag
+    0     2       2    -1                            1008 sub  $1, %bx
+    0     2       2    -1                            1009 test $0, %bx
+    0     2       2    -1                            1010 jgt .top
+    0     2       2    -1                            1011 halt
+```
+
 ---
 
 **Q3**: Change the value of the register `%bx` with the `-a` flag (e.g., `-a bx=2,bx=2` if you are running just two threads). What does the code do? How does it change your answer for the question above?
 
 **A**:
 
+```zsh
+$ python3 x86.py -p flag.s -M flag,count -R ax,bx -a bx=2,bx=2
+ARG seed 0
+ARG numthreads 2
+ARG program flag.s
+ARG interrupt frequency 50
+ARG interrupt randomness False
+ARG procsched
+ARG argv bx=2,bx=2
+ARG load address 1000
+ARG memsize 128
+ARG memtrace flag,count
+ARG regtrace ax,bx
+ARG cctrace False
+ARG printstats False
+ARG verbose False
+
+
+ flag count      ax    bx          Thread 0                Thread 1
+
+    0     0       0     2
+    0     0       0     2   1000 mov  flag, %ax
+    0     0       0     2   1001 test $0, %ax
+    0     0       0     2   1002 jne  .acquire
+    1     0       0     2   1003 mov  $1, flag
+    1     0       0     2   1004 mov  count, %ax
+    1     0       1     2   1005 add  $1, %ax
+    1     1       1     2   1006 mov  %ax, count
+    0     1       1     2   1007 mov  $0, flag
+    0     1       1     1   1008 sub  $1, %bx
+    0     1       1     1   1009 test $0, %bx
+    0     1       1     1   1010 jgt .top
+    0     1       0     1   1000 mov  flag, %ax
+    0     1       0     1   1001 test $0, %ax
+    0     1       0     1   1002 jne  .acquire
+    1     1       0     1   1003 mov  $1, flag
+    1     1       1     1   1004 mov  count, %ax
+    1     1       2     1   1005 add  $1, %ax
+    1     2       2     1   1006 mov  %ax, count
+    0     2       2     1   1007 mov  $0, flag
+    0     2       2     0   1008 sub  $1, %bx
+    0     2       2     0   1009 test $0, %bx
+    0     2       2     0   1010 jgt .top
+    0     2       2     0   1011 halt
+    0     2       0     2   ----- Halt;Switch -----  ----- Halt;Switch -----
+    0     2       0     2                            1000 mov  flag, %ax
+    0     2       0     2                            1001 test $0, %ax
+    0     2       0     2                            1002 jne  .acquire
+    1     2       0     2                            1003 mov  $1, flag
+    1     2       2     2                            1004 mov  count, %ax
+    1     2       3     2                            1005 add  $1, %ax
+    1     3       3     2                            1006 mov  %ax, count
+    0     3       3     2                            1007 mov  $0, flag
+    0     3       3     1                            1008 sub  $1, %bx
+    0     3       3     1                            1009 test $0, %bx
+    0     3       3     1                            1010 jgt .top
+    0     3       0     1                            1000 mov  flag, %ax
+    0     3       0     1                            1001 test $0, %ax
+    0     3       0     1                            1002 jne  .acquire
+    1     3       0     1                            1003 mov  $1, flag
+    1     3       3     1                            1004 mov  count, %ax
+    1     3       4     1                            1005 add  $1, %ax
+    1     4       4     1                            1006 mov  %ax, count
+    0     4       4     1                            1007 mov  $0, flag
+    0     4       4     0                            1008 sub  $1, %bx
+    0     4       4     0                            1009 test $0, %bx
+    0     4       4     0                            1010 jgt .top
+    0     4       4     0                            1011 halt
+```
+
 ---
 
 **Q4**: Set `bx` to a high value for each thread, and then use the `-i` flag to generate different interrupt frequencies; what values lead to a bad outcomes? Which lead to good outcomes?
 
-**A**:
+**A**: Set `-i` to 3 will lead to a bad outcomes.
+
+```zsh
+$ python3 x86.py -p flag.s -M flag,count -R ax,bx -a bx=10,bx=10 -i 3
+ARG seed 0
+ARG numthreads 2
+ARG program flag.s
+ARG interrupt frequency 3
+ARG interrupt randomness False
+ARG procsched
+ARG argv bx=10,bx=10
+ARG load address 1000
+ARG memsize 128
+ARG memtrace flag,count
+ARG regtrace ax,bx
+ARG cctrace False
+ARG printstats False
+ARG verbose False
+
+
+ flag count      ax    bx          Thread 0                Thread 1
+
+    0     0       0    10
+    0     0       0    10   1000 mov  flag, %ax
+    0     0       0    10   1001 test $0, %ax
+    0     0       0    10   1002 jne  .acquire
+    0     0       0    10   ------ Interrupt ------  ------ Interrupt ------
+    0     0       0    10                            1000 mov  flag, %ax
+    0     0       0    10                            1001 test $0, %ax
+    0     0       0    10                            1002 jne  .acquire
+    0     0       0    10   ------ Interrupt ------  ------ Interrupt ------
+    1     0       0    10   1003 mov  $1, flag
+    1     0       0    10   1004 mov  count, %ax
+    1     0       1    10   1005 add  $1, %ax
+    1     0       0    10   ------ Interrupt ------  ------ Interrupt ------
+    1     0       0    10                            1003 mov  $1, flag
+    1     0       0    10                            1004 mov  count, %ax
+    1     0       1    10                            1005 add  $1, %ax
+    1     0       1    10   ------ Interrupt ------  ------ Interrupt ------
+    1     1       1    10   1006 mov  %ax, count
+    0     1       1    10   1007 mov  $0, flag
+    0     1       1     9   1008 sub  $1, %bx
+    0     1       1    10   ------ Interrupt ------  ------ Interrupt ------
+    0     1       1    10                            1006 mov  %ax, count
+    0     1       1    10                            1007 mov  $0, flag
+    0     1       1     9                            1008 sub  $1, %bx
+    0     1       1     9   ------ Interrupt ------  ------ Interrupt ------
+    0     1       1     9   1009 test $0, %bx
+    0     1       1     9   1010 jgt .top
+    0     1       0     9   1000 mov  flag, %ax
+    0     1       1     9   ------ Interrupt ------  ------ Interrupt ------
+    0     1       1     9                            1009 test $0, %bx
+    0     1       1     9                            1010 jgt .top
+    0     1       0     9                            1000 mov  flag, %ax
+    0     1       0     9   ------ Interrupt ------  ------ Interrupt ------
+    0     1       0     9   1001 test $0, %ax
+    0     1       0     9   1002 jne  .acquire
+    1     1       0     9   1003 mov  $1, flag
+    1     1       0     9   ------ Interrupt ------  ------ Interrupt ------
+    1     1       0     9                            1001 test $0, %ax
+    1     1       0     9                            1002 jne  .acquire
+    1     1       0     9                            1003 mov  $1, flag
+    1     1       0     9   ------ Interrupt ------  ------ Interrupt ------
+    1     1       1     9   1004 mov  count, %ax
+    1     1       2     9   1005 add  $1, %ax
+    1     2       2     9   1006 mov  %ax, count
+    1     2       0     9   ------ Interrupt ------  ------ Interrupt ------
+    1     2       2     9                            1004 mov  count, %ax
+    1     2       3     9                            1005 add  $1, %ax
+    1     3       3     9                            1006 mov  %ax, count
+    1     3       2     9   ------ Interrupt ------  ------ Interrupt ------
+    0     3       2     9   1007 mov  $0, flag
+    0     3       2     8   1008 sub  $1, %bx
+    0     3       2     8   1009 test $0, %bx
+    0     3       3     9   ------ Interrupt ------  ------ Interrupt ------
+    0     3       3     9                            1007 mov  $0, flag
+    0     3       3     8                            1008 sub  $1, %bx
+    0     3       3     8                            1009 test $0, %bx
+    0     3       2     8   ------ Interrupt ------  ------ Interrupt ------
+    0     3       2     8   1010 jgt .top
+    0     3       0     8   1000 mov  flag, %ax
+    0     3       0     8   1001 test $0, %ax
+    0     3       3     8   ------ Interrupt ------  ------ Interrupt ------
+    0     3       3     8                            1010 jgt .top
+    0     3       0     8                            1000 mov  flag, %ax
+    0     3       0     8                            1001 test $0, %ax
+    0     3       0     8   ------ Interrupt ------  ------ Interrupt ------
+    0     3       0     8   1002 jne  .acquire
+    1     3       0     8   1003 mov  $1, flag
+    1     3       3     8   1004 mov  count, %ax
+    1     3       0     8   ------ Interrupt ------  ------ Interrupt ------
+    1     3       0     8                            1002 jne  .acquire
+    1     3       0     8                            1003 mov  $1, flag
+    1     3       3     8                            1004 mov  count, %ax
+    1     3       3     8   ------ Interrupt ------  ------ Interrupt ------
+    1     3       4     8   1005 add  $1, %ax
+    1     4       4     8   1006 mov  %ax, count
+    0     4       4     8   1007 mov  $0, flag
+    0     4       3     8   ------ Interrupt ------  ------ Interrupt ------
+    0     4       4     8                            1005 add  $1, %ax
+    0     4       4     8                            1006 mov  %ax, count
+    0     4       4     8                            1007 mov  $0, flag
+    0     4       4     8   ------ Interrupt ------  ------ Interrupt ------
+    0     4       4     7   1008 sub  $1, %bx
+    0     4       4     7   1009 test $0, %bx
+    0     4       4     7   1010 jgt .top
+    0     4       4     8   ------ Interrupt ------  ------ Interrupt ------
+    0     4       4     7                            1008 sub  $1, %bx
+    0     4       4     7                            1009 test $0, %bx
+    0     4       4     7                            1010 jgt .top
+    0     4       4     7   ------ Interrupt ------  ------ Interrupt ------
+    0     4       0     7   1000 mov  flag, %ax
+    0     4       0     7   1001 test $0, %ax
+    0     4       0     7   1002 jne  .acquire
+    0     4       4     7   ------ Interrupt ------  ------ Interrupt ------
+    0     4       0     7                            1000 mov  flag, %ax
+    0     4       0     7                            1001 test $0, %ax
+    0     4       0     7                            1002 jne  .acquire
+    0     4       0     7   ------ Interrupt ------  ------ Interrupt ------
+    1     4       0     7   1003 mov  $1, flag
+    1     4       4     7   1004 mov  count, %ax
+    1     4       5     7   1005 add  $1, %ax
+    1     4       0     7   ------ Interrupt ------  ------ Interrupt ------
+    1     4       0     7                            1003 mov  $1, flag
+    1     4       4     7                            1004 mov  count, %ax
+    1     4       5     7                            1005 add  $1, %ax
+    1     4       5     7   ------ Interrupt ------  ------ Interrupt ------
+    1     5       5     7   1006 mov  %ax, count
+    0     5       5     7   1007 mov  $0, flag
+    0     5       5     6   1008 sub  $1, %bx
+    0     5       5     7   ------ Interrupt ------  ------ Interrupt ------
+    0     5       5     7                            1006 mov  %ax, count
+    0     5       5     7                            1007 mov  $0, flag
+    0     5       5     6                            1008 sub  $1, %bx
+    0     5       5     6   ------ Interrupt ------  ------ Interrupt ------
+    0     5       5     6   1009 test $0, %bx
+    0     5       5     6   1010 jgt .top
+    0     5       0     6   1000 mov  flag, %ax
+    0     5       5     6   ------ Interrupt ------  ------ Interrupt ------
+    0     5       5     6                            1009 test $0, %bx
+    0     5       5     6                            1010 jgt .top
+    0     5       0     6                            1000 mov  flag, %ax
+    0     5       0     6   ------ Interrupt ------  ------ Interrupt ------
+    0     5       0     6   1001 test $0, %ax
+    0     5       0     6   1002 jne  .acquire
+    1     5       0     6   1003 mov  $1, flag
+    1     5       0     6   ------ Interrupt ------  ------ Interrupt ------
+    1     5       0     6                            1001 test $0, %ax
+    1     5       0     6                            1002 jne  .acquire
+    1     5       0     6                            1003 mov  $1, flag
+    1     5       0     6   ------ Interrupt ------  ------ Interrupt ------
+    1     5       5     6   1004 mov  count, %ax
+    1     5       6     6   1005 add  $1, %ax
+    1     6       6     6   1006 mov  %ax, count
+    1     6       0     6   ------ Interrupt ------  ------ Interrupt ------
+    1     6       6     6                            1004 mov  count, %ax
+    1     6       7     6                            1005 add  $1, %ax
+    1     7       7     6                            1006 mov  %ax, count
+    1     7       6     6   ------ Interrupt ------  ------ Interrupt ------
+    0     7       6     6   1007 mov  $0, flag
+    0     7       6     5   1008 sub  $1, %bx
+    0     7       6     5   1009 test $0, %bx
+    0     7       7     6   ------ Interrupt ------  ------ Interrupt ------
+    0     7       7     6                            1007 mov  $0, flag
+    0     7       7     5                            1008 sub  $1, %bx
+    0     7       7     5                            1009 test $0, %bx
+    0     7       6     5   ------ Interrupt ------  ------ Interrupt ------
+    0     7       6     5   1010 jgt .top
+    0     7       0     5   1000 mov  flag, %ax
+    0     7       0     5   1001 test $0, %ax
+    0     7       7     5   ------ Interrupt ------  ------ Interrupt ------
+    0     7       7     5                            1010 jgt .top
+    0     7       0     5                            1000 mov  flag, %ax
+    0     7       0     5                            1001 test $0, %ax
+    0     7       0     5   ------ Interrupt ------  ------ Interrupt ------
+    0     7       0     5   1002 jne  .acquire
+    1     7       0     5   1003 mov  $1, flag
+    1     7       7     5   1004 mov  count, %ax
+    1     7       0     5   ------ Interrupt ------  ------ Interrupt ------
+    1     7       0     5                            1002 jne  .acquire
+    1     7       0     5                            1003 mov  $1, flag
+    1     7       7     5                            1004 mov  count, %ax
+    1     7       7     5   ------ Interrupt ------  ------ Interrupt ------
+    1     7       8     5   1005 add  $1, %ax
+    1     8       8     5   1006 mov  %ax, count
+    0     8       8     5   1007 mov  $0, flag
+    0     8       7     5   ------ Interrupt ------  ------ Interrupt ------
+    0     8       8     5                            1005 add  $1, %ax
+    0     8       8     5                            1006 mov  %ax, count
+    0     8       8     5                            1007 mov  $0, flag
+    0     8       8     5   ------ Interrupt ------  ------ Interrupt ------
+    0     8       8     4   1008 sub  $1, %bx
+    0     8       8     4   1009 test $0, %bx
+    0     8       8     4   1010 jgt .top
+    0     8       8     5   ------ Interrupt ------  ------ Interrupt ------
+    0     8       8     4                            1008 sub  $1, %bx
+    0     8       8     4                            1009 test $0, %bx
+    0     8       8     4                            1010 jgt .top
+    0     8       8     4   ------ Interrupt ------  ------ Interrupt ------
+    0     8       0     4   1000 mov  flag, %ax
+    0     8       0     4   1001 test $0, %ax
+    0     8       0     4   1002 jne  .acquire
+    0     8       8     4   ------ Interrupt ------  ------ Interrupt ------
+    0     8       0     4                            1000 mov  flag, %ax
+    0     8       0     4                            1001 test $0, %ax
+    0     8       0     4                            1002 jne  .acquire
+    0     8       0     4   ------ Interrupt ------  ------ Interrupt ------
+    1     8       0     4   1003 mov  $1, flag
+    1     8       8     4   1004 mov  count, %ax
+    1     8       9     4   1005 add  $1, %ax
+    1     8       0     4   ------ Interrupt ------  ------ Interrupt ------
+    1     8       0     4                            1003 mov  $1, flag
+    1     8       8     4                            1004 mov  count, %ax
+    1     8       9     4                            1005 add  $1, %ax
+    1     8       9     4   ------ Interrupt ------  ------ Interrupt ------
+    1     9       9     4   1006 mov  %ax, count
+    0     9       9     4   1007 mov  $0, flag
+    0     9       9     3   1008 sub  $1, %bx
+    0     9       9     4   ------ Interrupt ------  ------ Interrupt ------
+    0     9       9     4                            1006 mov  %ax, count
+    0     9       9     4                            1007 mov  $0, flag
+    0     9       9     3                            1008 sub  $1, %bx
+    0     9       9     3   ------ Interrupt ------  ------ Interrupt ------
+    0     9       9     3   1009 test $0, %bx
+    0     9       9     3   1010 jgt .top
+    0     9       0     3   1000 mov  flag, %ax
+    0     9       9     3   ------ Interrupt ------  ------ Interrupt ------
+    0     9       9     3                            1009 test $0, %bx
+    0     9       9     3                            1010 jgt .top
+    0     9       0     3                            1000 mov  flag, %ax
+    0     9       0     3   ------ Interrupt ------  ------ Interrupt ------
+    0     9       0     3   1001 test $0, %ax
+    0     9       0     3   1002 jne  .acquire
+    1     9       0     3   1003 mov  $1, flag
+    1     9       0     3   ------ Interrupt ------  ------ Interrupt ------
+    1     9       0     3                            1001 test $0, %ax
+    1     9       0     3                            1002 jne  .acquire
+    1     9       0     3                            1003 mov  $1, flag
+    1     9       0     3   ------ Interrupt ------  ------ Interrupt ------
+    1     9       9     3   1004 mov  count, %ax
+    1     9      10     3   1005 add  $1, %ax
+    1    10      10     3   1006 mov  %ax, count
+    1    10       0     3   ------ Interrupt ------  ------ Interrupt ------
+    1    10      10     3                            1004 mov  count, %ax
+    1    10      11     3                            1005 add  $1, %ax
+    1    11      11     3                            1006 mov  %ax, count
+    1    11      10     3   ------ Interrupt ------  ------ Interrupt ------
+    0    11      10     3   1007 mov  $0, flag
+    0    11      10     2   1008 sub  $1, %bx
+    0    11      10     2   1009 test $0, %bx
+    0    11      11     3   ------ Interrupt ------  ------ Interrupt ------
+    0    11      11     3                            1007 mov  $0, flag
+    0    11      11     2                            1008 sub  $1, %bx
+    0    11      11     2                            1009 test $0, %bx
+    0    11      10     2   ------ Interrupt ------  ------ Interrupt ------
+    0    11      10     2   1010 jgt .top
+    0    11       0     2   1000 mov  flag, %ax
+    0    11       0     2   1001 test $0, %ax
+    0    11      11     2   ------ Interrupt ------  ------ Interrupt ------
+    0    11      11     2                            1010 jgt .top
+    0    11       0     2                            1000 mov  flag, %ax
+    0    11       0     2                            1001 test $0, %ax
+    0    11       0     2   ------ Interrupt ------  ------ Interrupt ------
+    0    11       0     2   1002 jne  .acquire
+    1    11       0     2   1003 mov  $1, flag
+    1    11      11     2   1004 mov  count, %ax
+    1    11       0     2   ------ Interrupt ------  ------ Interrupt ------
+    1    11       0     2                            1002 jne  .acquire
+    1    11       0     2                            1003 mov  $1, flag
+    1    11      11     2                            1004 mov  count, %ax
+    1    11      11     2   ------ Interrupt ------  ------ Interrupt ------
+    1    11      12     2   1005 add  $1, %ax
+    1    12      12     2   1006 mov  %ax, count
+    0    12      12     2   1007 mov  $0, flag
+    0    12      11     2   ------ Interrupt ------  ------ Interrupt ------
+    0    12      12     2                            1005 add  $1, %ax
+    0    12      12     2                            1006 mov  %ax, count
+    0    12      12     2                            1007 mov  $0, flag
+    0    12      12     2   ------ Interrupt ------  ------ Interrupt ------
+    0    12      12     1   1008 sub  $1, %bx
+    0    12      12     1   1009 test $0, %bx
+    0    12      12     1   1010 jgt .top
+    0    12      12     2   ------ Interrupt ------  ------ Interrupt ------
+    0    12      12     1                            1008 sub  $1, %bx
+    0    12      12     1                            1009 test $0, %bx
+    0    12      12     1                            1010 jgt .top
+    0    12      12     1   ------ Interrupt ------  ------ Interrupt ------
+    0    12       0     1   1000 mov  flag, %ax
+    0    12       0     1   1001 test $0, %ax
+    0    12       0     1   1002 jne  .acquire
+    0    12      12     1   ------ Interrupt ------  ------ Interrupt ------
+    0    12       0     1                            1000 mov  flag, %ax
+    0    12       0     1                            1001 test $0, %ax
+    0    12       0     1                            1002 jne  .acquire
+    0    12       0     1   ------ Interrupt ------  ------ Interrupt ------
+    1    12       0     1   1003 mov  $1, flag
+    1    12      12     1   1004 mov  count, %ax
+    1    12      13     1   1005 add  $1, %ax
+    1    12       0     1   ------ Interrupt ------  ------ Interrupt ------
+    1    12       0     1                            1003 mov  $1, flag
+    1    12      12     1                            1004 mov  count, %ax
+    1    12      13     1                            1005 add  $1, %ax
+    1    12      13     1   ------ Interrupt ------  ------ Interrupt ------
+    1    13      13     1   1006 mov  %ax, count
+    0    13      13     1   1007 mov  $0, flag
+    0    13      13     0   1008 sub  $1, %bx
+    0    13      13     1   ------ Interrupt ------  ------ Interrupt ------
+    0    13      13     1                            1006 mov  %ax, count
+    0    13      13     1                            1007 mov  $0, flag
+    0    13      13     0                            1008 sub  $1, %bx
+    0    13      13     0   ------ Interrupt ------  ------ Interrupt ------
+    0    13      13     0   1009 test $0, %bx
+    0    13      13     0   1010 jgt .top
+    0    13      13     0   1011 halt
+    0    13      13     0   ----- Halt;Switch -----  ----- Halt;Switch -----
+    0    13      13     0   ------ Interrupt ------  ------ Interrupt ------
+    0    13      13     0                            1009 test $0, %bx
+    0    13      13     0                            1010 jgt .top
+    0    13      13     0                            1011 halt
+```
 
 ---
 
 **Q5**: Now let’s look at the program `test-and-set.s`. First, try to understand the code, which uses the `xchg` instruction to build a simple locking primitive. How is the lock acquire written? How about lock release?
 
-**A**:
+**A**: The code uses `xchg` to perform a test-and-set operation to atomically acquire the lock. The lock is released by a move operation.
 
 ---
 
 **Q6**: Now run the code, changing the value of the interrupt interval (`-i`) again, and making sure to loop for a number of times. Does the code always work as expected? Does it sometimes lead to an inefficient use of the CPU? How could you quantify that?
 
-**A**:
+**A**: Yes, it works as expected. It leads to an inefficient use of the CPU because the lock it uses is essentially a spin-lock. We can quantify that by looking at the number of instructions executed by each thread.
+
+```zsh
+$ python3 x86.py -p test-and-set.s -M mutex,count -R ax,bx -a bx=5 -i 5 -c
+ARG seed 0
+ARG numthreads 2
+ARG program test-and-set.s
+ARG interrupt frequency 5
+ARG interrupt randomness False
+ARG procsched
+ARG argv bx=5
+ARG load address 1000
+ARG memsize 128
+ARG memtrace mutex,count
+ARG regtrace ax,bx
+ARG cctrace False
+ARG printstats False
+ARG verbose False
+
+
+mutex count      ax    bx          Thread 0                Thread 1
+
+    0     0       0     5
+    0     0       1     5   1000 mov  $1, %ax
+    1     0       0     5   1001 xchg %ax, mutex
+    1     0       0     5   1002 test $0, %ax
+    1     0       0     5   1003 jne  .acquire
+    1     0       0     5   1004 mov  count, %ax
+    1     0       0     5   ------ Interrupt ------  ------ Interrupt ------
+    1     0       1     5                            1000 mov  $1, %ax
+    1     0       1     5                            1001 xchg %ax, mutex
+    1     0       1     5                            1002 test $0, %ax
+    1     0       1     5                            1003 jne  .acquire
+    1     0       1     5                            1000 mov  $1, %ax
+    1     0       0     5   ------ Interrupt ------  ------ Interrupt ------
+    1     0       1     5   1005 add  $1, %ax
+    1     1       1     5   1006 mov  %ax, count
+    0     1       1     5   1007 mov  $0, mutex
+    0     1       1     4   1008 sub  $1, %bx
+    0     1       1     4   1009 test $0, %bx
+    0     1       1     5   ------ Interrupt ------  ------ Interrupt ------
+    1     1       0     5                            1001 xchg %ax, mutex
+    1     1       0     5                            1002 test $0, %ax
+    1     1       0     5                            1003 jne  .acquire
+    1     1       1     5                            1004 mov  count, %ax
+    1     1       2     5                            1005 add  $1, %ax
+    1     1       1     4   ------ Interrupt ------  ------ Interrupt ------
+    1     1       1     4   1010 jgt .top
+    1     1       1     4   1000 mov  $1, %ax
+    1     1       1     4   1001 xchg %ax, mutex
+    1     1       1     4   1002 test $0, %ax
+    1     1       1     4   1003 jne  .acquire
+    1     1       2     5   ------ Interrupt ------  ------ Interrupt ------
+    1     2       2     5                            1006 mov  %ax, count
+    0     2       2     5                            1007 mov  $0, mutex
+    0     2       2     4                            1008 sub  $1, %bx
+    0     2       2     4                            1009 test $0, %bx
+    0     2       2     4                            1010 jgt .top
+    0     2       1     4   ------ Interrupt ------  ------ Interrupt ------
+    0     2       1     4   1000 mov  $1, %ax
+    1     2       0     4   1001 xchg %ax, mutex
+    1     2       0     4   1002 test $0, %ax
+    1     2       0     4   1003 jne  .acquire
+    1     2       2     4   1004 mov  count, %ax
+    1     2       2     4   ------ Interrupt ------  ------ Interrupt ------
+    1     2       1     4                            1000 mov  $1, %ax
+    1     2       1     4                            1001 xchg %ax, mutex
+    1     2       1     4                            1002 test $0, %ax
+    1     2       1     4                            1003 jne  .acquire
+    1     2       1     4                            1000 mov  $1, %ax
+    1     2       2     4   ------ Interrupt ------  ------ Interrupt ------
+    1     2       3     4   1005 add  $1, %ax
+    1     3       3     4   1006 mov  %ax, count
+    0     3       3     4   1007 mov  $0, mutex
+    0     3       3     3   1008 sub  $1, %bx
+    0     3       3     3   1009 test $0, %bx
+    0     3       1     4   ------ Interrupt ------  ------ Interrupt ------
+    1     3       0     4                            1001 xchg %ax, mutex
+    1     3       0     4                            1002 test $0, %ax
+    1     3       0     4                            1003 jne  .acquire
+    1     3       3     4                            1004 mov  count, %ax
+    1     3       4     4                            1005 add  $1, %ax
+    1     3       3     3   ------ Interrupt ------  ------ Interrupt ------
+    1     3       3     3   1010 jgt .top
+    1     3       1     3   1000 mov  $1, %ax
+    1     3       1     3   1001 xchg %ax, mutex
+    1     3       1     3   1002 test $0, %ax
+    1     3       1     3   1003 jne  .acquire
+    1     3       4     4   ------ Interrupt ------  ------ Interrupt ------
+    1     4       4     4                            1006 mov  %ax, count
+    0     4       4     4                            1007 mov  $0, mutex
+    0     4       4     3                            1008 sub  $1, %bx
+    0     4       4     3                            1009 test $0, %bx
+    0     4       4     3                            1010 jgt .top
+    0     4       1     3   ------ Interrupt ------  ------ Interrupt ------
+    0     4       1     3   1000 mov  $1, %ax
+    1     4       0     3   1001 xchg %ax, mutex
+    1     4       0     3   1002 test $0, %ax
+    1     4       0     3   1003 jne  .acquire
+    1     4       4     3   1004 mov  count, %ax
+    1     4       4     3   ------ Interrupt ------  ------ Interrupt ------
+    1     4       1     3                            1000 mov  $1, %ax
+    1     4       1     3                            1001 xchg %ax, mutex
+    1     4       1     3                            1002 test $0, %ax
+    1     4       1     3                            1003 jne  .acquire
+    1     4       1     3                            1000 mov  $1, %ax
+    1     4       4     3   ------ Interrupt ------  ------ Interrupt ------
+    1     4       5     3   1005 add  $1, %ax
+    1     5       5     3   1006 mov  %ax, count
+    0     5       5     3   1007 mov  $0, mutex
+    0     5       5     2   1008 sub  $1, %bx
+    0     5       5     2   1009 test $0, %bx
+    0     5       1     3   ------ Interrupt ------  ------ Interrupt ------
+    1     5       0     3                            1001 xchg %ax, mutex
+    1     5       0     3                            1002 test $0, %ax
+    1     5       0     3                            1003 jne  .acquire
+    1     5       5     3                            1004 mov  count, %ax
+    1     5       6     3                            1005 add  $1, %ax
+    1     5       5     2   ------ Interrupt ------  ------ Interrupt ------
+    1     5       5     2   1010 jgt .top
+    1     5       1     2   1000 mov  $1, %ax
+    1     5       1     2   1001 xchg %ax, mutex
+    1     5       1     2   1002 test $0, %ax
+    1     5       1     2   1003 jne  .acquire
+    1     5       6     3   ------ Interrupt ------  ------ Interrupt ------
+    1     6       6     3                            1006 mov  %ax, count
+    0     6       6     3                            1007 mov  $0, mutex
+    0     6       6     2                            1008 sub  $1, %bx
+    0     6       6     2                            1009 test $0, %bx
+    0     6       6     2                            1010 jgt .top
+    0     6       1     2   ------ Interrupt ------  ------ Interrupt ------
+    0     6       1     2   1000 mov  $1, %ax
+    1     6       0     2   1001 xchg %ax, mutex
+    1     6       0     2   1002 test $0, %ax
+    1     6       0     2   1003 jne  .acquire
+    1     6       6     2   1004 mov  count, %ax
+    1     6       6     2   ------ Interrupt ------  ------ Interrupt ------
+    1     6       1     2                            1000 mov  $1, %ax
+    1     6       1     2                            1001 xchg %ax, mutex
+    1     6       1     2                            1002 test $0, %ax
+    1     6       1     2                            1003 jne  .acquire
+    1     6       1     2                            1000 mov  $1, %ax
+    1     6       6     2   ------ Interrupt ------  ------ Interrupt ------
+    1     6       7     2   1005 add  $1, %ax
+    1     7       7     2   1006 mov  %ax, count
+    0     7       7     2   1007 mov  $0, mutex
+    0     7       7     1   1008 sub  $1, %bx
+    0     7       7     1   1009 test $0, %bx
+    0     7       1     2   ------ Interrupt ------  ------ Interrupt ------
+    1     7       0     2                            1001 xchg %ax, mutex
+    1     7       0     2                            1002 test $0, %ax
+    1     7       0     2                            1003 jne  .acquire
+    1     7       7     2                            1004 mov  count, %ax
+    1     7       8     2                            1005 add  $1, %ax
+    1     7       7     1   ------ Interrupt ------  ------ Interrupt ------
+    1     7       7     1   1010 jgt .top
+    1     7       1     1   1000 mov  $1, %ax
+    1     7       1     1   1001 xchg %ax, mutex
+    1     7       1     1   1002 test $0, %ax
+    1     7       1     1   1003 jne  .acquire
+    1     7       8     2   ------ Interrupt ------  ------ Interrupt ------
+    1     8       8     2                            1006 mov  %ax, count
+    0     8       8     2                            1007 mov  $0, mutex
+    0     8       8     1                            1008 sub  $1, %bx
+    0     8       8     1                            1009 test $0, %bx
+    0     8       8     1                            1010 jgt .top
+    0     8       1     1   ------ Interrupt ------  ------ Interrupt ------
+    0     8       1     1   1000 mov  $1, %ax
+    1     8       0     1   1001 xchg %ax, mutex
+    1     8       0     1   1002 test $0, %ax
+    1     8       0     1   1003 jne  .acquire
+    1     8       8     1   1004 mov  count, %ax
+    1     8       8     1   ------ Interrupt ------  ------ Interrupt ------
+    1     8       1     1                            1000 mov  $1, %ax
+    1     8       1     1                            1001 xchg %ax, mutex
+    1     8       1     1                            1002 test $0, %ax
+    1     8       1     1                            1003 jne  .acquire
+    1     8       1     1                            1000 mov  $1, %ax
+    1     8       8     1   ------ Interrupt ------  ------ Interrupt ------
+    1     8       9     1   1005 add  $1, %ax
+    1     9       9     1   1006 mov  %ax, count
+    0     9       9     1   1007 mov  $0, mutex
+    0     9       9     0   1008 sub  $1, %bx
+    0     9       9     0   1009 test $0, %bx
+    0     9       1     1   ------ Interrupt ------  ------ Interrupt ------
+    1     9       0     1                            1001 xchg %ax, mutex
+    1     9       0     1                            1002 test $0, %ax
+    1     9       0     1                            1003 jne  .acquire
+    1     9       9     1                            1004 mov  count, %ax
+    1     9      10     1                            1005 add  $1, %ax
+    1     9       9     0   ------ Interrupt ------  ------ Interrupt ------
+    1     9       9     0   1010 jgt .top
+    1     9       9     0   1011 halt
+    1     9      10     1   ----- Halt;Switch -----  ----- Halt;Switch -----
+    1    10      10     1                            1006 mov  %ax, count
+    0    10      10     1                            1007 mov  $0, mutex
+    0    10      10     0                            1008 sub  $1, %bx
+    0    10      10     0   ------ Interrupt ------  ------ Interrupt ------
+    0    10      10     0                            1009 test $0, %bx
+    0    10      10     0                            1010 jgt .top
+    0    10      10     0                            1011 halt
+
+```
 
 ---
 
 **Q7**: Use the `-P` flag to generate specific tests of the locking code. For example, run a schedule that grabs the lock in the first thread, but then tries to acquire it in the second. Does the right thing happen? What else should you test?
 
-**A**:
+**A**: Yes. I can also try to run the program with different interrupts and different number of threads.
 
 ---
 
 **Q8**: Now let’s look at the code in `peterson.s`, which implements Peterson’s algorithm (mentioned in a sidebar in the text). Study the code and see if you can make sense of it.
 
-**A**:
+**A**: Yes.
 
 ---
 
@@ -1238,32 +1877,182 @@ this should print last
 
 **A**:
 
+```zsh
+$ python3 x86.py -p peterson.s -M flag,turn,count -R ax,bx,cx,fx -a bx=0,bx=1 -i 5
+ARG seed 0
+ARG numthreads 2
+ARG program peterson.s
+ARG interrupt frequency 5
+ARG interrupt randomness False
+ARG procsched
+ARG argv bx=0,bx=1
+ARG load address 1000
+ARG memsize 128
+ARG memtrace flag,turn,count
+ARG regtrace ax,bx,cx,fx
+ARG cctrace False
+ARG printstats False
+ARG verbose False
+
+
+ flag  turn count      ax    bx    cx    fx          Thread 0                Thread 1
+
+    0     0     0       0     0     0     0
+    0     0     0       0     0     0   100   1000 lea flag, %fx
+    0     0     0       0     0     0   100   1001 mov %bx, %cx
+    0     0     0       0     0     0   100   1002 neg %cx
+    0     0     0       0     0     1   100   1003 add $1, %cx
+    1     0     0       0     0     1   100   1004 mov $1, 0(%fx,%bx,4)
+    1     0     0       0     1     0     0   ------ Interrupt ------  ------ Interrupt ------
+    1     0     0       0     1     0   100                            1000 lea flag, %fx
+    1     0     0       0     1     1   100                            1001 mov %bx, %cx
+    1     0     0       0     1    -1   100                            1002 neg %cx
+    1     0     0       0     1     0   100                            1003 add $1, %cx
+    1     0     0       0     1     0   100                            1004 mov $1, 0(%fx,%bx,4)
+    1     0     0       0     0     1   100   ------ Interrupt ------  ------ Interrupt ------
+    1     1     0       0     0     1   100   1005 mov %cx, turn
+    1     1     0       1     0     1   100   1006 mov 0(%fx,%cx,4), %ax
+    1     1     0       1     0     1   100   1007 test $1, %ax
+    1     1     0       1     0     1   100   1008 jne .fini
+    1     1     0       1     0     1   100   1009 mov turn, %ax
+    1     1     0       0     1     0   100   ------ Interrupt ------  ------ Interrupt ------
+    1     0     0       0     1     0   100                            1005 mov %cx, turn
+    1     0     0       1     1     0   100                            1006 mov 0(%fx,%cx,4), %ax
+    1     0     0       1     1     0   100                            1007 test $1, %ax
+    1     0     0       1     1     0   100                            1008 jne .fini
+    1     0     0       0     1     0   100                            1009 mov turn, %ax
+    1     0     0       1     0     1   100   ------ Interrupt ------  ------ Interrupt ------
+    1     0     0       1     0     1   100   1010 test %cx, %ax
+    1     0     0       1     0     1   100   1011 je .spin1
+    1     0     0       1     0     1   100   1006 mov 0(%fx,%cx,4), %ax
+    1     0     0       1     0     1   100   1007 test $1, %ax
+    1     0     0       1     0     1   100   1008 jne .fini
+    1     0     0       0     1     0   100   ------ Interrupt ------  ------ Interrupt ------
+    1     0     0       0     1     0   100                            1010 test %cx, %ax
+    1     0     0       0     1     0   100                            1011 je .spin1
+    1     0     0       1     1     0   100                            1006 mov 0(%fx,%cx,4), %ax
+    1     0     0       1     1     0   100                            1007 test $1, %ax
+    1     0     0       1     1     0   100                            1008 jne .fini
+    1     0     0       1     0     1   100   ------ Interrupt ------  ------ Interrupt ------
+    1     0     0       0     0     1   100   1009 mov turn, %ax
+    1     0     0       0     0     1   100   1010 test %cx, %ax
+    1     0     0       0     0     1   100   1011 je .spin1
+    1     0     0       0     0     1   100   1012 mov count, %ax
+    1     0     0       1     0     1   100   1013 add $1, %ax
+    1     0     0       1     1     0   100   ------ Interrupt ------  ------ Interrupt ------
+    1     0     0       0     1     0   100                            1009 mov turn, %ax
+    1     0     0       0     1     0   100                            1010 test %cx, %ax
+    1     0     0       0     1     0   100                            1011 je .spin1
+    1     0     0       1     1     0   100                            1006 mov 0(%fx,%cx,4), %ax
+    1     0     0       1     1     0   100                            1007 test $1, %ax
+    1     0     0       1     0     1   100   ------ Interrupt ------  ------ Interrupt ------
+    1     0     1       1     0     1   100   1014 mov %ax, count
+    0     0     1       1     0     1   100   1015 mov $0, 0(%fx,%bx,4)
+    0     1     1       1     0     1   100   1016 mov %cx, turn
+    0     1     1       1     0     1   100   1017 halt
+    0     1     1       1     1     0   100   ----- Halt;Switch -----  ----- Halt;Switch -----
+    0     1     1       1     1     0   100                            1008 jne .fini
+    0     1     1       1     1     0   100   ------ Interrupt ------  ------ Interrupt ------
+    0     1     1       1     1     0   100                            1009 mov turn, %ax
+    0     1     1       1     1     0   100                            1010 test %cx, %ax
+    0     1     1       1     1     0   100                            1011 je .spin1
+    0     1     1       1     1     0   100                            1012 mov count, %ax
+    0     1     1       2     1     0   100                            1013 add $1, %ax
+    0     1     1       2     1     0   100   ------ Interrupt ------  ------ Interrupt ------
+    0     1     2       2     1     0   100                            1014 mov %ax, count
+    0     1     2       2     1     0   100                            1015 mov $0, 0(%fx,%bx,4)
+    0     0     2       2     1     0   100                            1016 mov %cx, turn
+    0     0     2       2     1     0   100                            1017 halt
+```
+
 ---
 
 **Q10**: Can you control the scheduling (with the `-P` flag) to “prove” that the code works? What are the different cases you should show hold? Think about mutual exclusion and deadlock avoidance.
 
 **A**:
 
+```zsh
+$ python3 x86.py -p peterson.s -M flag,turn,count -R ax,bx,cx,fx -a bx=0,bx=1 -i 5 -P 0001
+ARG seed 0
+ARG numthreads 2
+ARG program peterson.s
+ARG interrupt frequency 5
+ARG interrupt randomness False
+ARG procsched 0001
+ARG argv bx=0,bx=1
+ARG load address 1000
+ARG memsize 128
+ARG memtrace flag,turn,count
+ARG regtrace ax,bx,cx,fx
+ARG cctrace False
+ARG printstats False
+ARG verbose False
+
+
+ flag  turn count      ax    bx    cx    fx          Thread 0                Thread 1
+
+    0     0     0       0     0     0     0
+    0     0     0       0     0     0   100   1000 lea flag, %fx
+    0     0     0       0     0     0   100   1001 mov %bx, %cx
+    0     0     0       0     0     0   100   1002 neg %cx
+    0     0     0       0     1     0     0   ------ Interrupt ------  ------ Interrupt ------
+    0     0     0       0     1     0   100                            1000 lea flag, %fx
+    0     0     0       0     0     0   100   ------ Interrupt ------  ------ Interrupt ------
+    0     0     0       0     0     1   100   1003 add $1, %cx
+    1     0     0       0     0     1   100   1004 mov $1, 0(%fx,%bx,4)
+    1     1     0       0     0     1   100   1005 mov %cx, turn
+    1     1     0       0     1     0   100   ------ Interrupt ------  ------ Interrupt ------
+    1     1     0       0     1     1   100                            1001 mov %bx, %cx
+    1     1     0       0     0     1   100   ------ Interrupt ------  ------ Interrupt ------
+    1     1     0       0     0     1   100   1006 mov 0(%fx,%cx,4), %ax
+    1     1     0       0     0     1   100   1007 test $1, %ax
+    1     1     0       0     0     1   100   1008 jne .fini
+    1     1     0       0     1     1   100   ------ Interrupt ------  ------ Interrupt ------
+    1     1     0       0     1    -1   100                            1002 neg %cx
+    1     1     0       0     0     1   100   ------ Interrupt ------  ------ Interrupt ------
+    1     1     0       0     0     1   100   1012 mov count, %ax
+    1     1     0       1     0     1   100   1013 add $1, %ax
+    1     1     1       1     0     1   100   1014 mov %ax, count
+    1     1     1       0     1    -1   100   ------ Interrupt ------  ------ Interrupt ------
+    1     1     1       0     1     0   100                            1003 add $1, %cx
+    1     1     1       1     0     1   100   ------ Interrupt ------  ------ Interrupt ------
+    0     1     1       1     0     1   100   1015 mov $0, 0(%fx,%bx,4)
+    0     1     1       1     0     1   100   1016 mov %cx, turn
+    0     1     1       1     0     1   100   1017 halt
+    0     1     1       0     1     0   100   ----- Halt;Switch -----  ----- Halt;Switch -----
+    0     1     1       0     1     0   100                            1004 mov $1, 0(%fx,%bx,4)
+    0     0     1       0     1     0   100                            1005 mov %cx, turn
+    0     0     1       0     1     0   100                            1006 mov 0(%fx,%cx,4), %ax
+    0     0     1       0     1     0   100                            1007 test $1, %ax
+    0     0     1       0     1     0   100                            1008 jne .fini
+    0     0     1       1     1     0   100                            1012 mov count, %ax
+    0     0     1       2     1     0   100                            1013 add $1, %ax
+    0     0     2       2     1     0   100                            1014 mov %ax, count
+    0     0     2       2     1     0   100                            1015 mov $0, 0(%fx,%bx,4)
+    0     0     2       2     1     0   100                            1016 mov %cx, turn
+    0     0     2       2     1     0   100                            1017 halt
+```
+
 ---
 
 **Q11**: Now study the code for the ticket lock in `ticket.s`. Does it match the code in the chapter? Then run with the following flags: `-a bx=1000,bx=1000` (causing each thread to loop through the critical section 1000 times). Watch what happens; do the threads spend much time spin-waiting for the lock?
 
-**A**:
+**A**: Yes, it matches the code in our textbook. Threads still spend time on spin-waiting for the lock.
 
 ---
 
 **Q12**: How does the code behave as you add more threads?
 
-**A**:
+**A**: As it uses a ticket lock, every thread should have opportunity to get the lock and run.
 
 ---
 
 **Q13**: Now examine `yield.s`, in which a `yield` instruction enables one thread to yield control of the CPU (realistically, this would be an OS primitive, but for the simplicity, we assume an instruction does the task). Find a scenario where `test-and-set.s` wastes cycles spinning, but `yield.s` does not.  How many instructions are saved? In what scenarios do these savings arise?
 
-**A**:
+**A**: The instructions saved depends on the how many cpu cycles are wasted on spin-waiting. Becuase the `yield` instruction (or OS primitive) doesn't wait in a spinning manner, it gives in control instead.
 
 ---
 
 **Q14**： Finally, examine `test-and-test-and-set.s`. What does this lock do? What kind of savings does it introduce as compared to `test-and-set.s`?
 
-**A**:
+**A**: The `test-and-test-and-set.s` examines the mutex state before doing a atomic `xchg`. It tries to reduce the performance penalty of the `xchg` instruction.

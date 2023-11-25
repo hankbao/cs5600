@@ -11,3 +11,4 @@ All the labs and assignments for cs5600
 - [Homework 7: Chapters 20-22, and REFINED VM simulator pitch!](Homework%207/README.md)
 - [Homework 8: Chapters 26, 27 and 28!](Homework%208/README.md)
 - [Homework 9: Chapters 29, 30 and 31!](Homework%209/README.md)
+- [Homework 10: Chapters 32, 33 AND Fabulous Project pitch!!!](Homework%2010/README.md)

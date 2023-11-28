@@ -2,14 +2,9 @@
 
 ## Part 1: Chapter 32 Code
 
-**Q1**: First let’s make sure you understand how the programs generally work, and
-some of the key options. Study the code in `vector-deadlock.c`, as well
-as in `main-common.c` and related files.
+**Q1**: First let’s make sure you understand how the programs generally work, and some of the key options. Study the code in `vector-deadlock.c`, as well as in `main-common.c` and related files.
 
-Now, run `./vector-deadlock -n 2 -l 1 -v`, which instantiates two
-threads (`-n 2`), each of which does one vector add (`-l 1`), and does so in
-verbose mode (`-v`). Make sure you understand the output. How does the
-output change from run to run?
+Now, run `./vector-deadlock -n 2 -l 1 -v`, which instantiates two threads (`-n 2`), each of which does one vector add (`-l 1`), and does so in verbose mode (`-v`). Make sure you understand the output. How does the output change from run to run?
 
 **A**:
 

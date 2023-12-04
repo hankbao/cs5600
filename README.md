@@ -12,3 +12,4 @@ All the labs and assignments for cs5600
 - [Homework 8: Chapters 26, 27 and 28!](Homework%208/README.md)
 - [Homework 9: Chapters 29, 30 and 31!](Homework%209/README.md)
 - [Homework 10: Chapters 32, 33 AND Fabulous Project pitch!!!](Homework%2010/README.md)
+- [Homework 11: Homework 11: Final VMM presentation and Project update!](Homework%2011/README.md)

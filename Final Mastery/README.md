@@ -14,8 +14,8 @@ I designed the overall topics of our first presentation, and I also designed the
 
 Although these are the conceptual designs, they have detailed parameter definitions.
 
-- [Refined Presentation](https://docs.google.com/presentation/d/1cqL5pHquOcsk4v-Pn6lAISUzBKTm0BOb61Xs_q1OGuA/edit?usp=sharing)
-- [Final Presentation](https://docs.google.com/presentation/d/1IVi1K4gROPD1z8eB5QqwAMphA0JHd5xxJ-XFRLI7p3g/edit?usp=sharing)
+- [Refined Presentation](https://docs.google.com/presentation/d/1DFIpBcAQLcdQ_JCr7_UeBqPp9A6zN9oxMEjtBn8im-s/edit?usp=sharing)
+- [Final Presentation](https://docs.google.com/presentation/d/1cqL5pHquOcsk4v-Pn6lAISUzBKTm0BOb61Xs_q1OGuA/edit?usp=sharing)
 
 We developed the final presentation from the refined one.
 
